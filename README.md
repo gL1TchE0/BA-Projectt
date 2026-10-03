@@ -188,7 +188,7 @@ Course: 23CSE452 Business Analytics (Data Analysis and Predictive Modelling)
 | Soundarya Satalgoan | CB.SC.U4CSE23447 | Issues 1 to 4: problem statement, dataset plan, documentation, TMDB API setup |
 | Balaji N | CB.SC.U4CSE23011 | Issues 5 to 7: data collection, cleaning, data quality check |
 | Parvathy Krishna A | CB.SC.U4CSE23739 | Issues 8 to 10: numerical, genre/language and relationship EDA |
-| Venkata Kanna Bhavan Surya Addap | CB.SC.U4CSE23467 | Issues 11 to 13: structured and text features, target definition, baseline |
+| Venkata Kanna Bhavan Surya Adapa | CB.SC.U4CSE23467 | Issues 11 to 13: structured and text features, target definition, baseline |
 | Dareddy Tejeswara Reddy | CB.SC.U4CSE23614 | Issues 14 to 17: model training, tuning, evaluation, interpretation |
 
 Task planning and progress: https://github.com/users/soundarya-satal/projects/4
