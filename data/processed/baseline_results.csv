@@ -1,2 +1,2 @@
 Model,Accuracy,Precision,Recall,F1,AUC
-DummyClassifier (baseline),0.610,0.000,0.000,0.000,0.500
+DummyClassifier (baseline),0.6101190476190477,0.0,0.0,0.0,0.5
