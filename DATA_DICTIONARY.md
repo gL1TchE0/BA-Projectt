@@ -1,259 +1,171 @@
-# Data Dictionary: tmdb_clean.csv
-
-## Dataset Overview
-
-The `tmdb_clean.csv` dataset contains **15,386 cleaned movie records** covering movies released between **2000 and 2025**.
-
-The dataset was collected from the **TMDB (The Movie Database) API** and cleaned to remove incomplete or invalid records. The final dataset is used for exploratory data analysis, feature engineering, text mining, and predictive modelling.
-
-- **Final records:** 15,386
-- **Original records:** 15,555
-- **Records removed during cleaning:** 169
-- **Time period:** 2000–2025
-- **Unique languages:** 89
-- **Genres:** 19
-- **Duplicate IDs:** None
-- **Missing values:** None
-- **Low-vote records:** 34.5% (`vote_count < 20`)
-
----
-
-## Data Dictionary
-
-| Column | Type | Description | Range / Notes |
-|---|---|---|---|
-| `id` | int | TMDB movie ID and unique record identifier | No duplicates |
-| `title` | text | Movie title | Used for movie identification |
-| `release_date` | datetime | Original release date of the movie | 2000-01-01 to 2025-12-31 |
-| `original_language` | categorical | Original language of the movie represented using an ISO 639-1 language code | 89 languages; top 10 account for 84.9% |
-| `overview` | text | Plot summary of the movie | No empty values; used for text mining |
-| `popularity` | float | TMDB popularity score | 0.01–92.5; right-skewed |
-| `vote_average` | float | Mean user rating for the movie | 1.2–10.0; median 6.1 |
-| `vote_count` | int | Number of user votes received by the movie | 10–34,747; median 30 |
-| `genres` | list | Movie genre names mapped from TMDB genre IDs | 19 genres; multi-label |
-| `release_year` | int | Year derived from `release_date` | 2000–2025 |
-| `low_votes` | bool | Derived indicator identifying movies with fewer than 20 votes | `True` when `vote_count < 20`; 34.5% are `True` |
-
----
-
-## Detailed Column Descriptions
-
-### 1. `id`
-
-- **Type:** Integer
-- **Role:** Unique identifier
-- **Description:** Unique TMDB identifier assigned to each movie.
-- **Purpose:** Used to uniquely identify movie records and check for duplicate entries.
-- **Data quality:** No duplicate IDs are present in the cleaned dataset.
-
-### 2. `title`
-
-- **Type:** Text
-- **Role:** Movie identifier / descriptive field
-- **Description:** Name or title of the movie.
-- **Purpose:** Used to identify movies and present results in reports and visualizations.
-
-### 3. `release_date`
-
-- **Type:** Datetime
-- **Role:** Temporal variable
-- **Description:** Original release date of the movie.
-- **Range:** 2000-01-01 to 2025-12-31.
-- **Purpose:** Used for temporal analysis and for deriving the `release_year` variable.
-
-### 4. `original_language`
-
-- **Type:** Categorical
-- **Role:** Categorical feature
-- **Description:** Original language of the movie represented using an ISO 639-1 language code.
-- **Unique categories:** 89 languages.
-- **Distribution:** The top 10 languages account for 84.9% of all records.
-- **Purpose:** Used for language-based exploratory analysis and categorical feature analysis.
-
-### 5. `overview`
-
-- **Type:** Text
-- **Role:** Text feature
-- **Description:** Plot summary or description of the movie obtained from TMDB.
-- **Data quality:** No empty values remain after cleaning.
-- **Purpose:** Used for text mining and can be used for techniques such as keyword analysis and text feature extraction.
-
-### 6. `popularity`
-
-- **Type:** Float
-- **Role:** Numerical feature
-- **Description:** TMDB popularity score associated with the movie.
-- **Range:** 0.01–92.5.
-- **Distribution:** Right-skewed.
-- **Purpose:** Used to analyze movie popularity and its relationship with other variables such as ratings and vote count.
-
-### 7. `vote_average`
-
-- **Type:** Float
-- **Role:** Numerical performance variable
-- **Description:** Mean user rating assigned to the movie on TMDB.
-- **Range:** 1.2–10.0.
-- **Median:** 6.1.
-- **Purpose:** Used as a primary movie-performance measure and for defining the high-rated movie target during predictive modelling.
-
-### 8. `vote_count`
-
-- **Type:** Integer
-- **Role:** Numerical feature
-- **Description:** Total number of user votes contributing to the movie's rating.
-- **Range:** 10–34,747.
-- **Median:** 30.
-- **Purpose:** Used to measure the amount of voting evidence supporting a movie's rating and to identify movies with potentially noisy ratings.
-
-### 9. `genres`
-
-- **Type:** List
-- **Role:** Multi-label categorical feature
-- **Description:** Genre names associated with each movie. The original TMDB genre IDs were mapped to readable genre names.
-- **Number of genres:** 19.
-- **Structure:** Multi-label; a movie can belong to more than one genre.
-- **Purpose:** Used for genre-based exploratory analysis and can be transformed into model-ready categorical features.
-
-### 10. `release_year`
-
-- **Type:** Integer
-- **Role:** Derived temporal feature
-- **Description:** Calendar year extracted from `release_date`.
-- **Range:** 2000–2025.
-- **Purpose:** Used for year-wise analysis, temporal trends, and feature engineering.
-
-### 11. `low_votes`
-
-- **Type:** Boolean
-- **Role:** Derived data-quality indicator
-- **Definition:** `vote_count < 20`
-- **Meaning:**
-  - `True` → Movie has fewer than 20 votes.
-  - `False` → Movie has 20 or more votes.
-- **Percentage of `True` records:** 34.5%.
-- **Purpose:** Identifies movies whose ratings may be less reliable because they are based on a small number of votes.
-
-> **Note:** `low_votes` is a data-quality indicator and should not be interpreted as an indicator of whether a movie is good or bad.
-
----
-
-## Data Cleaning
-
-The original dataset contained **15,555 records**. During data cleaning, **169 records were removed**, resulting in **15,386 final records**.
-
-The cleaning process included:
-
-- Removing records with empty movie overviews.
-- Removing records with missing genre information.
-- Removing records with missing release dates.
-- Removing records containing invalid values.
-- Checking for duplicate movie IDs.
-- Validating numerical variables.
-- Mapping TMDB genre IDs to readable genre names.
-- Deriving `release_year` from `release_date`.
-- Deriving `low_votes` using the `vote_count < 20` rule.
-
-After cleaning:
-
-- No duplicate movie IDs remain.
-- No missing values remain.
-- No empty overview values remain.
-- The dataset contains 15,386 movie records.
-
----
-
-## Dropped Fields
-
-The following fields from the original dataset were removed because they were not required for the analytical objectives:
-
-| Dropped Field | Reason |
-|---|---|
-| `adult` | Not required for the planned analysis |
-| `backdrop_path` | Media/path information not required for analysis |
-| `original_title` | Redundant with the retained movie title information |
-| `poster_path` | Media/path information not required for analysis |
-| `softcore` | Not required for the planned analysis |
-| `video` | Not required for the planned analysis |
-
----
-
-## Data Quality Summary
-
-| Quality Check | Result |
-|---|---|
-| Final number of records | 15,386 |
-| Records removed | 169 |
-| Duplicate IDs | None |
-| Missing values | None |
-| Empty overviews | None |
-| Number of languages | 89 |
-| Number of genres | 19 |
-| Top 10 language share | 84.9% |
-| Low-vote records | 34.5% |
-| Release period | 2000–2025 |
-
----
-
-## Analytical Use of the Dataset
-
-The cleaned dataset supports the following stages of the project:
-
-### Exploratory Data Analysis
-
-- Numerical analysis of `popularity`, `vote_average`, and `vote_count`
-- Genre distribution analysis
-- Language distribution analysis
-- Release-year trends
-- Relationship and correlation analysis
-
-### Text Analysis
-
-The `overview` column can be used for:
-
-- Plot-summary analysis
-- Keyword analysis
-- Text preprocessing
-- TF-IDF feature extraction
-- Text-based feature engineering
-
-### Feature Engineering
-
-Potential features can be derived from:
-
-- `release_date`
-- `release_year`
-- `original_language`
-- `genres`
-- `popularity`
-- `vote_count`
-- `overview`
-
-### Predictive Modelling
-
-The dataset can be filtered using the `low_votes` criterion to create a more reliable modelling population. The `vote_average` variable can then be used to define the project's rating-based target.
-
----
-
-## Important Interpretation Notes
-
-1. **Popularity is not the same as movie quality.** A movie may have high popularity without having a high audience rating.
-
-2. **Vote count affects rating reliability.** Movies with very few votes may have less stable average ratings.
-
-3. **Genres are multi-label.** A single movie can belong to multiple genres, so genre categories are not mutually exclusive.
-
-4. **Language distribution is uneven.** The top 10 languages represent 84.9% of the dataset, so less common languages have smaller sample sizes.
-
-5. **`low_votes` is not a quality label.** It only indicates that a movie has fewer than 20 votes.
-
-6. **`release_year` is a derived variable.** It is extracted from `release_date` rather than directly collected as a separate source field.
-
-7. **The dataset is observational.** Relationships found during analysis should be interpreted as associations rather than causal relationships.
-
----
-
-## Dataset Summary
-
-The final `tmdb_clean.csv` dataset provides a structured foundation for analyzing movie performance from 2000 to 2025. It combines movie metadata, temporal information, language and genre information, plot-summary text, popularity measures, audience ratings, and voting information.
-
-The cleaned dataset contains **15,386 records and 11 analytical variables**, with **169 records removed during preprocessing**. The resulting dataset is suitable for numerical EDA, categorical EDA, relationship analysis, text mining, feature engineering, and predictive modelling.
+# Dataset Documentation: TMDB Movies (2000 to 2025)
+
+Project: Movie Performance Analysis and Prediction Using TMDB Data
+Course: 23CSE452 Business Analytics
+
+## 1. Overview
+
+| Item | Detail |
+|------|--------|
+| Source | The Movie Database (TMDB) API v3, collected by the team (no pre-built dataset used) |
+| Endpoints | `/discover/movie` (movies), `/genre/movie/list` (genre names) |
+| Collected on | [add collection date] (TMDB data changes over time, so record this) |
+| Coverage | Movies released from 2000-01-01 to 2025-12-31 |
+| Raw dataset | 15,555 unique movies, 9 columns |
+| Clean dataset | 15,386 movies, 11 columns |
+| Modelling dataset | 10,078 movies (20 or more votes), 18 columns |
+| Prediction target | `high_rated` = 1 if `vote_average >= 6.5`, else 0 (39% positive) |
+
+## 2. Collection method
+
+- One request series per release year (`primary_release_year` = 2000 to 2025).
+- For each year, 30 pages were chosen **at random** (seed 42) from the pages TMDB offers, sorted by `popularity.desc`, with `vote_count.gte=10` and `include_adult=false`. Random pages give a mix of well-known and obscure movies, so the data is not limited to popular films.
+- Requests use one HTTP session with automatic retries and back-off. Progress is saved after each year in `data/raw/checkpoint.json`.
+- Only the fields needed for the analysis were kept. Dropped fields: `adult`, `backdrop_path`, `poster_path`, `original_title`, `softcore`, `video`.
+- The API key is stored in a local `.env` file and is not part of the repository.
+
+## 3. Files
+
+| File | Rows | Columns | Description |
+|------|------|---------|-------------|
+| `data/raw/tmdb_raw.csv` | 15,555 | 9 | Collected data, only deduplicated by `id` |
+| `data/raw/genres.csv` | 19 | 2 | Genre ID to name mapping (if saved) |
+| `data/processed/tmdb_clean.csv` | 15,386 | 11 | Cleaned dataset used for EDA |
+| `data/processed/tmdb_model.csv` | 10,078 | 18 | Movies with 20 or more votes, with model features and target |
+
+## 4. Data dictionary: `tmdb_clean.csv`
+
+| # | Column | Data type | Field type | Description | Range / values | Missing |
+|---|--------|-----------|------------|-------------|----------------|---------|
+| 1 | `id` | int64 | Identifier | Unique TMDB movie ID (primary key) | 16 to 1,688,177 | 0 |
+| 2 | `title` | object (string) | Text (label) | Movie title | free text | 0 |
+| 3 | `release_date` | datetime64 | Date | Release date | 2000-01-01 to 2025-12-31 | 0 |
+| 4 | `original_language` | object (string) | Categorical | ISO 639-1 code of the original language | 89 values; `en` 8,229, `fr` 1,138, `es` 806, `ja` 751 | 0 |
+| 5 | `overview` | object (string) | Text | Plot summary, used for text features | 5 or more words for all but 4 rows | 0 |
+| 6 | `popularity` | float64 | Numerical (continuous) | TMDB popularity score, based on recent activity | 0.01 to 92.51 | 0 |
+| 7 | `vote_average` | float64 | Numerical (continuous) | Mean user rating on a 0 to 10 scale | 1.2 to 10.0 | 0 |
+| 8 | `vote_count` | int64 | Numerical (discrete) | Number of user votes behind `vote_average` | 10 to 34,747 | 0 |
+| 9 | `genres` | object (list of strings) | Categorical (multi-label) | Genre names; a movie has one or more | 19 genres, 1 or more per movie | 0 |
+| 10 | `release_year` | int32 | Numerical (derived) | Year taken from `release_date` | 2000 to 2025 | 0 |
+| 11 | `low_votes` | bool | Binary flag (derived) | True if `vote_count < 20` (rating is noisy) | True for 5,308 movies (34.5%) | 0 |
+
+Notes:
+- In the raw file, genres are stored as `genre_ids` (a list of integer IDs). They were mapped to names using `/genre/movie/list`, and `genre_ids` was then dropped.
+- In CSV files, `genres` is stored as text such as `['Drama', 'Action']`. Convert it back after loading:
+  ```python
+  import ast
+  df["genres"] = df["genres"].apply(ast.literal_eval)
+  ```
+
+### Field types at a glance
+
+| Type | Columns |
+|------|---------|
+| Numerical | `popularity`, `vote_average`, `vote_count`, `release_year` |
+| Categorical | `original_language`, `genres` (multi-label) |
+| Date | `release_date` |
+| Text | `overview` (and `title` as a label) |
+| Identifier | `id` |
+| Flag | `low_votes` |
+
+## 5. Additional columns in `tmdb_model.csv`
+
+These are added for the modelling subset (movies with `vote_count >= 20`).
+
+| Column | Data type | Description |
+|--------|-----------|-------------|
+| `high_rated` | int | **Target.** 1 if `vote_average >= 6.5`, else 0 (39% are 1) |
+| `lang` | object | `original_language` limited to the top 10 languages, others grouped as `other` |
+| `month` | int | Release month (1 to 12) |
+| `ov_words` | int | Number of words in `overview` |
+| `n_genres` | int | Number of genres of the movie |
+| `log_pop` | float | `log(1 + popularity)` |
+| `log_votes` | float | `log(1 + vote_count)` |
+
+Feature sets used for modelling (built in the notebook, not saved as files):
+
+| Set | Features | Count |
+|-----|----------|-------|
+| A (content only) | `release_year`, `month`, `ov_words`, `n_genres`, 19 genre flags, 10 language flags + `other` | 34 |
+| B | Set A + `log_pop` + `log_votes` | 36 |
+| Text | 1,000 TF-IDF terms (unigrams and bigrams) from `overview`, fitted on the training split only | 1,000 |
+
+## 6. Summary statistics (`tmdb_clean.csv`, 15,386 movies)
+
+| Variable | Mean | Std | Min | 25% | Median | 75% | Max | Skew |
+|----------|------|-----|-----|-----|--------|-----|-----|------|
+| `popularity` | 2.77 | 3.43 | 0.01 | 1.40 | 1.88 | 2.76 | 92.51 | 6.85 |
+| `vote_average` | 6.00 | 1.08 | 1.20 | 5.30 | 6.10 | 6.70 | 10.00 | -0.45 |
+| `vote_count` | 331.45 | 1,600.58 | 10 | 16 | 30 | 98 | 34,747 | 10.24 |
+| `release_year` | 2012.5 | 7.5 | 2000 | 2006 | 2013 | 2019 | 2025 | n/a |
+
+`popularity` and `vote_count` are heavily right-skewed, so log transforms are used in models.
+
+### Genre counts (a movie can have several genres)
+
+| Genre | Movies | Genre | Movies |
+|-------|--------|-------|--------|
+| Drama | 6,910 | Family | 1,130 |
+| Comedy | 4,898 | Adventure | 1,028 |
+| Thriller | 2,905 | Animation | 1,021 |
+| Romance | 2,450 | Science Fiction | 1,006 |
+| Horror | 2,117 | Mystery | 984 |
+| Action | 2,033 | Fantasy | 963 |
+| Documentary | 1,515 | History | 587 |
+| Crime | 1,510 | Music | 518 |
+| TV Movie | 1,216 | War | 293 |
+|  |  | Western | 99 |
+
+### Distribution over years
+
+575 to 598 movies per release year (about 600 sampled per year), so the years are almost evenly represented.
+
+## 7. Cleaning applied (raw to clean)
+
+| Step | Effect |
+|------|--------|
+| Remove duplicate `id` | 0 duplicates found |
+| Parse `release_date` to a date, drop invalid | no invalid dates |
+| Drop blank `overview` | 105 rows removed |
+| Drop invalid values (`vote_count` of 0, `popularity` of 0 or below, rating outside 0 to 10) and rows without genre | 64 rows removed |
+| Map `genre_ids` to `genres`, add `release_year` and `low_votes` | 2 columns added |
+| **Result** | **15,555 to 15,386 rows (169 removed, 1.1%)** |
+
+## 8. Data quality checks
+
+| Check | Result |
+|-------|--------|
+| Missing values (NaN) in the clean data | 0 |
+| Duplicate IDs | 0 |
+| Release dates in the future | 0 |
+| Overviews with fewer than 5 words | 4 (kept) |
+| Outliers by IQR rule on log values | 913 for `popularity` (5.9%), 653 for `vote_count` (4.2%); kept because they are genuine hits |
+| Languages | 89; the top 10 cover 84.9% of movies |
+
+## 9. Data sample (first 3 rows of `tmdb_clean.csv`, overview shortened)
+
+| id | title | release_date | original_language | overview | popularity | vote_average | vote_count | genres | release_year | low_votes |
+|----|-------|--------------|-------------------|----------|-----------|--------------|-----------|--------|--------------|-----------|
+| 159627 | Ground Zero | 2000-05-12 | en | When a series of tremors rocks Los Angeles, se... | 1.6756 | 4.1 | 13 | Drama, Action | 2000 | True |
+| 28085 | Blind Target | 2000-01-01 | en | A popular American novelist, who has written h... | 1.7006 | 3.4 | 11 | Thriller, Drama | 2000 | True |
+| 60074 | La Squale | 2000-11-29 | fr | Désirée, a black girl, is nicknamed "The Shark... | 1.8364 | 6.1 | 16 | Drama | 2000 | True |
+
+## 10. Known limitations and biases
+
+- **Sampling:** about 600 movies per year were sampled, so movie counts per year reflect our design, not TMDB itself. The dataset is a sample, not every TMDB movie.
+- **Minimum votes:** collection used `vote_count >= 10`, so movies with fewer than 10 votes are not included.
+- **Noisy ratings:** 34.5% of movies have fewer than 20 votes, so their `vote_average` is unreliable. Modelling uses only movies with 20 or more votes.
+- **Popularity:** TMDB popularity reflects recent activity, so it favours newer films and changes over time.
+- **Language imbalance:** English is about 53% of movies. Non-English movies that reach 20 votes may be a self-selected, well-received group.
+- **Overview text:** the language of `overview` was not filtered or checked, and some entries are very short.
+- **Time:** ratings and popularity are a snapshot at collection time and will differ if the data is collected again.
+
+## 11. Reproducibility
+
+1. Create a TMDB API key and store it in `.env` as `TMDB_API_KEY`.
+2. Run the collection cells of `notebooks/Review1_TMDB_Final.ipynb` (random seed 42, so the page selection is repeatable; TMDB's own data may have changed since).
+3. Run the cleaning cell to create `data/processed/tmdb_clean.csv`.
+
+## 12. Terms of use and attribution
+
+Data comes from TMDB and is used here for academic purposes only. This product uses the TMDB API but is not endorsed or certified by TMDB. The dataset contains no personal data.
