@@ -1,0 +1,13 @@
+metric,value
+movies analysed,10078.0
+high-rated share,0.39
+terms tested,2000.0
+terms significant (Bonferroni),19.0
+topics chosen,4.0
+mean topic coherence (NPMI),0.0338
+Kruskal-Wallis p (rating by topic),8.549170066319288e-25
+chi-square p (high-rated by topic),1.5615324152270831e-21
+polarity vs rating Spearman r,0.0833
+polarity vs rating p,5.483155575876169e-17
+subjectivity vs rating Spearman r,-0.0346
+subjectivity vs rating p,0.0005086787744174226

@@ -1,0 +1,9 @@
+genre,polarity,subjectivity
+Drama,0.0554,0.4553
+Comedy,0.0894,0.4767
+Thriller,-0.0309,0.4733
+Romance,0.1359,0.4788
+Action,-0.0049,0.4696
+Horror,-0.0651,0.4987
+Crime,-0.0083,0.461
+Family,0.1027,0.4917
