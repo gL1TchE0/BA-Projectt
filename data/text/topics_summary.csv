@@ -1,0 +1,5 @@
+topic,movies,avg_rating,high_rated_pct,avg_popularity,topic_name,coherence,top_words
+1,2015,6.16,0.438,3.862,"T1: school, high, war",0.008,"school, high, war, team, children, fight, parents, journey, american, human"
+2,2905,6.122,0.362,3.103,"T2: love, family, girl",0.066,"love, family, girl, father, mother, past, friends, friend, town, daughter"
+3,1693,6.313,0.469,2.982,"T3: night, women, make",0.029,"night, women, make, game, lives, power, live, career, husband, company"
+4,3465,6.007,0.347,3.603,"T4: house, police, murder",0.032,"house, police, murder, death, killer, city, family, money, crime, secret"
