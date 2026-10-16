@@ -272,6 +272,16 @@ df["genres"] = df["genres"].apply(
 
 This project was completed for **23CSE452 Business Analytics**. It covers data collection, cleaning, exploratory analysis, predictive modelling, time-series analysis, text mining, and dashboard communication.
 
+### Team members
+
+| Name | Student ID |
+|---|---|
+| Soundarya Satalgoan | CB.SC.U4CSE23447 |
+| Balaji N | CB.SC.U4CSE23011 |
+| Parvathy Krishna A | CB.SC.U4CSE23739 |
+| Venkata Kanna Bhavan Surya Addap | CB.SC.U4CSE23467 |
+| Dareddy Tejeswara Reddy | CB.SC.U4CSE23614 |
+
 ## Acknowledgements
 
 - Movie metadata and audience metrics: [The Movie Database (TMDB)](https://www.themoviedb.org/)
