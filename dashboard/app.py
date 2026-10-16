@@ -20,6 +20,153 @@ HIGH = 6.5                                   # a movie is "high-rated" at this r
 BLUE, ORANGE, GREEN, RED, GREY = "#1f4e79", "#f28e2b", "#2e9e6b", "#d1495b", "#9aa5b1"
 MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 
+if "theme" not in st.session_state:
+    st.session_state.theme = "Light"
+theme = st.sidebar.radio("Appearance", ["Light", "Dark"], horizontal=True, key="theme")
+dark_mode = theme == "Dark"
+theme_values = {
+    "app_bg": "#101722" if dark_mode else "#f7f9fc",
+    "app_gradient_end": "#172131" if dark_mode else "#ffffff",
+    "header_bg": "rgba(16, 23, 34, 0.86)" if dark_mode else "rgba(247, 249, 252, 0.86)",
+    "ink": "#f2f5f8" if dark_mode else "#172033",
+    "muted": "#aab6c5" if dark_mode else "#667085",
+    "navy": "#a9d4f5" if dark_mode else "#193b63",
+    "sky": "#1c344c" if dark_mode else "#eaf3fb",
+    "line": "#2c3a4d" if dark_mode else "#e5eaf1",
+    "surface": "#182333" if dark_mode else "#ffffff",
+    "sidebar_start": "#152437" if dark_mode else "#f1f6fb",
+    "sidebar_end": "#101722" if dark_mode else "#ffffff",
+    "plot": "#182333" if dark_mode else "#ffffff",
+}
+if dark_mode:
+    BLUE = "#72b7e8"
+
+st.markdown(
+    """
+    <style>
+    @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
+
+    :root {
+        --ink: __INK__;
+        --muted: __MUTED__;
+        --navy: __NAVY__;
+        --sky: __SKY__;
+        --line: __LINE__;
+        --surface: __SURFACE__;
+    }
+
+    .stApp {
+        background: linear-gradient(180deg, __APP_BG__ 0%, __APP_GRADIENT_END__ 360px);
+        color: var(--ink);
+        font-family: 'DM Sans', sans-serif;
+    }
+    [data-testid="stHeader"] { background: __HEADER_BG__; }
+    [data-testid="stMainBlockContainer"] { max-width: 1480px; padding-top: 2rem; }
+    h1, h2, h3, h4, [data-testid="stMetricLabel"] {
+        font-family: 'Space Grotesk', sans-serif;
+        color: var(--ink);
+    }
+    h1 { letter-spacing: -0.04em; font-size: 2.55rem !important; margin-bottom: 0.15rem !important; }
+    h2 { letter-spacing: -0.025em; margin-top: 1.6rem !important; }
+    h3 { letter-spacing: -0.02em; }
+    p, li, .stCaption { color: var(--muted); }
+
+    .app-kicker {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.45rem;
+        color: var(--navy);
+        background: var(--sky);
+        border: 1px solid #d6e7f6;
+        border-radius: 999px;
+        padding: 0.32rem 0.72rem;
+        font-size: 0.76rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        margin-bottom: 0.75rem;
+    }
+    .app-kicker::before {
+        content: "●";
+        color: #f28e2b;
+        font-size: 0.65rem;
+    }
+    .hero-copy {
+        font-size: 1.05rem;
+        max-width: 760px;
+        color: var(--muted);
+        margin-top: -0.15rem;
+        margin-bottom: 1.4rem;
+    }
+
+    [data-testid="stMetric"] {
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        padding: 1.05rem 1.15rem;
+        box-shadow: 0 8px 24px rgba(25, 59, 99, 0.06);
+    }
+    [data-testid="stMetricLabel"] { color: var(--muted); font-size: 0.78rem; font-weight: 600; }
+    [data-testid="stMetricValue"] { color: var(--navy); font-size: 1.65rem; }
+
+    [data-baseweb="tab-list"] {
+        gap: 0.45rem;
+        border-bottom: 1px solid var(--line);
+        margin-bottom: 1.25rem;
+    }
+    [data-baseweb="tab"] {
+        height: 3rem;
+        border-radius: 10px 10px 0 0;
+        padding: 0 1rem;
+        color: var(--muted);
+        font-weight: 600;
+    }
+    [aria-selected="true"] {
+        color: var(--navy) !important;
+        background: var(--sky);
+    }
+    [data-baseweb="tab-highlight"] { background-color: #f28e2b; height: 3px; }
+
+    [data-testid="stSidebar"] {
+        background: linear-gradient(180deg, __SIDEBAR_START__ 0%, __APP_BG__ 58%, __SIDEBAR_END__ 100%);
+        border-right: 1px solid var(--line);
+    }
+    [data-testid="stSidebar"] h2, [data-testid="stSidebar"] h3 {
+        color: var(--navy);
+    }
+    [data-testid="stExpander"] {
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        background: color-mix(in srgb, var(--surface) 88%, transparent);
+    }
+    [data-testid="stPlotlyChart"] {
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        padding: 0.35rem;
+        background: var(--surface);
+        box-shadow: 0 6px 20px rgba(25, 59, 99, 0.045);
+    }
+    .stButton > button, .stDownloadButton > button {
+        border-radius: 9px;
+        border: 1px solid var(--line);
+        color: var(--navy);
+        font-weight: 600;
+    }
+    </style>
+    """.replace("__INK__", theme_values["ink"])
+    .replace("__MUTED__", theme_values["muted"])
+    .replace("__NAVY__", theme_values["navy"])
+    .replace("__SKY__", theme_values["sky"])
+    .replace("__LINE__", theme_values["line"])
+    .replace("__SURFACE__", theme_values["surface"])
+    .replace("__APP_BG__", theme_values["app_bg"])
+    .replace("__APP_GRADIENT_END__", theme_values["app_gradient_end"])
+    .replace("__HEADER_BG__", theme_values["header_bg"])
+    .replace("__SIDEBAR_START__", theme_values["sidebar_start"])
+    .replace("__SIDEBAR_END__", theme_values["sidebar_end"]),
+    unsafe_allow_html=True,
+)
+
 # ---- EDIT THESE: recommendations shown on the last tab (add your time-series and text-mining ones) ----
 RECS = [
     ("Plan by genre expectations",
@@ -66,7 +213,21 @@ IMP_A = {"Documentary": .0487, "Horror": .0376, "Animation": .0369, "release_yea
 
 # ---------------- helpers ----------------
 def show(fig):
-    fig.update_layout(template="plotly_white", margin=dict(l=10, r=10, t=50, b=10))
+    fig.update_layout(
+        template="plotly_dark" if dark_mode else "plotly_white",
+        margin=dict(l=10, r=10, t=50, b=10),
+        font=dict(family="DM Sans, sans-serif", color=theme_values["ink"]),
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor=theme_values["plot"],
+        title=dict(font=dict(family="Space Grotesk, sans-serif", size=17, color=theme_values["navy"])),
+        legend=dict(
+            bgcolor=theme_values["surface"],
+            bordercolor=theme_values["line"],
+            borderwidth=1,
+        ),
+    )
+    fig.update_xaxes(showgrid=True, gridcolor=theme_values["line"], zeroline=False)
+    fig.update_yaxes(showgrid=True, gridcolor=theme_values["line"], zeroline=False)
     try: st.plotly_chart(fig, width="stretch")
     except TypeError: st.plotly_chart(fig, use_container_width=True)
 
@@ -120,8 +281,12 @@ if base is None:
     st.error("No data found. Run the notebooks first (data/processed/tmdb_clean.csv is required).")
     st.stop()
 
-st.title("Movie Performance Analytics (TMDB, 2000 to 2025)")
-st.caption("23CSE452 Business Analytics, Review 2. Explore ratings, time-series forecasts and text-mining results.")
+st.markdown('<div class="app-kicker">TMDB intelligence workspace</div>', unsafe_allow_html=True)
+st.title("Movie Performance Analytics")
+st.markdown(
+    '<div class="hero-copy">Explore what shapes movie ratings across 15,000+ titles — from genre patterns and audience engagement to forecasts and plot themes.</div>',
+    unsafe_allow_html=True,
+)
 with st.expander("About the data and how to read this dashboard"):
     st.markdown(
         "- The data is a **sample** of about 600 movies per release year (random pages from the TMDB API), so we do not chart the "
@@ -138,6 +303,8 @@ all_genres = sorted(ge[ge != ""].unique())
 langs = base["original_language"].value_counts().head(15).index.tolist()
 ymin, ymax = int(base["release_year"].min()), int(base["release_year"].max())
 
+st.sidebar.markdown("### Explore the catalogue")
+st.sidebar.caption("Refine the analysis below. Your selections flow through the Overview, EDA and Text mining tabs.")
 st.sidebar.header("Filters")
 yr = st.sidebar.slider("Release year", ymin, ymax, (ymin, ymax))
 gsel = st.sidebar.multiselect("Genre (empty = all)", all_genres)
