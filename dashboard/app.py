@@ -5,6 +5,7 @@ Reads the CSV files created by the notebooks (data/processed, data/ts, data/text
 Layout: each tab shows only its headline charts. Secondary charts sit in collapsed
 expanders ("Show: ...") and open on click."""
 import ast
+import html
 from pathlib import Path
 import numpy as np
 import pandas as pd
@@ -152,6 +153,81 @@ st.markdown(
         color: var(--navy);
         font-weight: 600;
     }
+    .insight-card {
+        position: relative;
+        overflow: hidden;
+        min-height: 142px;
+        padding: 1.15rem 1.25rem 1.2rem 1.35rem;
+        margin: 0.5rem 0 0.85rem;
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        background: var(--surface);
+        box-shadow: 0 7px 20px rgba(25, 59, 99, 0.06);
+    }
+    .insight-card::before {
+        content: "";
+        position: absolute;
+        inset: 0 auto 0 0;
+        width: 6px;
+        background: var(--accent);
+    }
+    .insight-topline {
+        display: flex;
+        align-items: center;
+        gap: 0.7rem;
+        margin-bottom: 0.65rem;
+    }
+    .insight-icon {
+        display: grid;
+        place-items: center;
+        width: 2.35rem;
+        height: 2.35rem;
+        flex: 0 0 2.35rem;
+        border-radius: 12px;
+        background: var(--icon-bg);
+        font-size: 1.2rem;
+    }
+    .insight-category {
+        color: var(--accent);
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.09em;
+        text-transform: uppercase;
+    }
+    .insight-title {
+        margin: 0;
+        color: var(--ink);
+        font-family: 'Space Grotesk', sans-serif;
+        font-size: 1.02rem;
+        font-weight: 700;
+    }
+    .insight-copy {
+        margin: 0;
+        color: var(--muted);
+        line-height: 1.55;
+        font-size: 0.92rem;
+    }
+    .insight-label {
+        color: var(--ink);
+        font-size: 0.78rem;
+        font-weight: 700;
+    }
+    .insight-stat {
+        padding: 0.95rem 1rem;
+        border-radius: 14px;
+        border: 1px solid var(--line);
+        background: var(--surface);
+    }
+    .insight-stat strong {
+        display: block;
+        color: var(--navy);
+        font-family: 'Space Grotesk', sans-serif;
+        font-size: 1.45rem;
+    }
+    .insight-stat span {
+        color: var(--muted);
+        font-size: 0.78rem;
+    }
     </style>
     """.replace("__INK__", theme_values["ink"])
     .replace("__MUTED__", theme_values["muted"])
@@ -209,6 +285,16 @@ IMP_B = {"log_votes": .0658, "Documentary": .0490, "Horror": .0315, "English": .
 IMP_A = {"Documentary": .0487, "Horror": .0376, "Animation": .0369, "release_year": .0196, "Drama": .0164,
          "Thriller": .0135, "English": .0092, "Japanese": .0088, "Comedy": .0060, "Korean": .0059,
          "History": .0038, "French": .0033, "month": .0032, "overview_words": .0031, "Music": .0016}
+INSIGHT_META = [
+    ("🎬", "Choosing a movie", "#2e9e6b", "rgba(46, 158, 107, 0.14)"),
+    ("📣", "Popularity vs quality", "#f28e2b", "rgba(242, 142, 43, 0.15)"),
+    ("🔎", "Before release", "#1f80c0", "rgba(31, 128, 192, 0.14)"),
+    ("📈", "After release", "#8a63d2", "rgba(138, 99, 210, 0.14)"),
+    ("🌍", "Global audiences", "#d1495b", "rgba(209, 73, 91, 0.14)"),
+    ("🗓️", "Planning ahead", "#1f4e79", "rgba(31, 78, 121, 0.14)"),
+    ("📝", "Understanding stories", "#2e9e6b", "rgba(46, 158, 107, 0.14)"),
+    ("💡", "Next step", "#667085", "rgba(102, 112, 133, 0.14)"),
+]
 
 
 # ---------------- helpers ----------------
@@ -568,15 +654,44 @@ with tabs[4]:
 
 # ================= 6. Insights =================
 with tabs[5]:
-    st.subheader("Business insights and recommendations")
-    for i, (h, t) in enumerate(RECS, 1):
-        with st.container(border=True):
-            st.markdown(f"**{i}. {h}**")
-            st.write(t)
+    st.subheader("The big picture, in plain English")
+    st.caption("These are practical takeaways from the movie data. They describe patterns, not guarantees.")
+    for i, (h, t) in enumerate(RECS):
+        icon, category, accent, icon_bg = INSIGHT_META[i]
+        st.markdown(
+            f"""
+            <div class="insight-card" style="--accent:{accent};--icon-bg:{icon_bg};">
+                <div class="insight-topline">
+                    <div class="insight-icon">{icon}</div>
+                    <div>
+                        <div class="insight-category">{html.escape(category)}</div>
+                        <p class="insight-title">{html.escape(h)}</p>
+                    </div>
+                </div>
+                <p class="insight-copy"><span class="insight-label">What this means: </span>{html.escape(t)}</p>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
     if clean is not None and f is not None and not f.empty:
         g = f.explode("genres").groupby("genres").agg(movies=("id", "size"), rating=("vote_average", "mean")).query("movies >= 30")
         if len(g) > 1:
-            st.subheader("Live numbers for the current filters")
-            st.write(f"- Highest rated genre: **{g['rating'].idxmax()}** ({g['rating'].max():.2f}); lowest: **{g['rating'].idxmin()}** ({g['rating'].min():.2f}).")
-            st.write(f"- {f['high_rated'].mean():.0%} of the {len(f):,} selected movies are rated {HIGH} or more.")
+            st.subheader("Your selected catalogue at a glance")
+            st.caption("These numbers update when you change the filters in the sidebar.")
+            s1, s2, s3 = st.columns(3)
+            with s1:
+                st.markdown(
+                    f'<div class="insight-stat"><strong>{g["rating"].idxmax()}</strong><span>Highest-rated genre · {g["rating"].max():.2f} average</span></div>',
+                    unsafe_allow_html=True,
+                )
+            with s2:
+                st.markdown(
+                    f'<div class="insight-stat"><strong>{g["rating"].idxmin()}</strong><span>Lowest-rated genre · {g["rating"].min():.2f} average</span></div>',
+                    unsafe_allow_html=True,
+                )
+            with s3:
+                st.markdown(
+                    f'<div class="insight-stat"><strong>{f["high_rated"].mean():.0%}</strong><span>Of {len(f):,} selected movies rated {HIGH}+</span></div>',
+                    unsafe_allow_html=True,
+                )
     st.caption("Findings are associations in a sample of TMDB movies, not proof of cause.")
