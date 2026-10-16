@@ -553,22 +553,127 @@ with tabs[3]:
     if not need(text, "data/text/text_movie_level.csv", nb): pass
     elif ft.empty: st.warning("No movies match the current filters (text mining uses movies with 20 or more votes).")
     else:
-        st.caption(f"{len(ft):,} movies selected. Topics come from LDA on the plot overviews.")
+        # ---- section-level CSS for text mining tab ----
+        st.markdown("""
+        <style>
+        .tm-section-header {
+            display: flex; align-items: center; gap: 0.6rem;
+            margin: 1.6rem 0 0.6rem; padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--line);
+        }
+        .tm-section-header .tm-icon {
+            display: grid; place-items: center;
+            width: 2.1rem; height: 2.1rem; border-radius: 10px;
+            font-size: 1.1rem;
+        }
+        .tm-section-header h3 {
+            margin: 0 !important; font-size: 1.25rem !important;
+            letter-spacing: -0.02em;
+        }
+        .tm-kpi { text-align: center; padding: 0.7rem 0.5rem; }
+        .tm-kpi strong {
+            display: block; font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.55rem; color: var(--navy);
+        }
+        .tm-kpi span { font-size: 0.82rem; color: var(--muted); }
+        .tm-topic-card {
+            padding: 1rem 1.15rem; border: 1px solid var(--line);
+            border-radius: 14px; background: var(--surface);
+            box-shadow: 0 4px 14px rgba(25,59,99,0.045);
+            margin-bottom: 0.5rem;
+        }
+        .tm-topic-name {
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700; font-size: 1rem; color: var(--ink);
+            margin-bottom: 0.25rem;
+        }
+        .tm-topic-words {
+            font-size: 0.82rem; color: var(--muted);
+            line-height: 1.5; margin-bottom: 0.55rem;
+        }
+        .tm-topic-stats {
+            display: flex; gap: 1rem; flex-wrap: wrap;
+        }
+        .tm-topic-stat {
+            font-size: 0.78rem; color: var(--muted);
+        }
+        .tm-topic-stat strong {
+            color: var(--navy); font-family: 'Space Grotesk', sans-serif;
+            font-size: 0.95rem;
+        }
+        .tm-divider {
+            border: none; border-top: 1px solid var(--line);
+            margin: 1.2rem 0;
+        }
+        </style>
+        """, unsafe_allow_html=True)
+
+        # ---- KPI row ----
+        avg_pol = ft["polarity"].mean()
+        dominant_topic = ft["topic_name"].value_counts().idxmax()
+        kc = st.columns(4)
+        kc[0].markdown(f'<div class="tm-kpi"><strong>{len(ft):,}</strong><span>Movies analysed</span></div>', unsafe_allow_html=True)
+        kc[1].markdown(f'<div class="tm-kpi"><strong>{ft["vote_average"].mean():.2f}</strong><span>Average rating</span></div>', unsafe_allow_html=True)
+        kc[2].markdown(f'<div class="tm-kpi"><strong>{avg_pol:.3f}</strong><span>Average polarity</span></div>', unsafe_allow_html=True)
+        kc[3].markdown(f'<div class="tm-kpi"><strong>{dominant_topic}</strong><span>Most common topic</span></div>', unsafe_allow_html=True)
+
+        st.markdown('<hr class="tm-divider">', unsafe_allow_html=True)
+
+        # ---- Topics ----
+        st.markdown(
+            '<div class="tm-section-header">'
+            '<div class="tm-icon" style="background:rgba(31,128,192,0.12);">📊</div>'
+            '<h3>Topic analysis</h3></div>', unsafe_allow_html=True)
+        st.caption("Topics extracted using LDA on plot overviews. Each movie belongs to the topic with the highest probability.")
+
         tsum = read("text/topics_summary.csv")
         tt = ft.groupby(["topic", "topic_name"]).agg(movies=("id", "size"), avg_rating=("vote_average", "mean"),
                                                      high_rated=("high_rated", "mean"), avg_popularity=("popularity", "mean")).reset_index()
         if tsum is not None: tt = tt.merge(tsum[["topic", "top_words", "coherence"]], on="topic", how="left")
         tt["high_rated"] = (tt["high_rated"] * 100).round(1)
-        st.subheader("Topics")
-        table(tt.round(3).rename(columns={"high_rated": "high_rated_%"}))
+
+        # topic cards (2 per row)
+        tt_sorted = tt.sort_values("avg_rating", ascending=False)
+        for row_start in range(0, len(tt_sorted), 2):
+            cols = st.columns(2)
+            for j, col in enumerate(cols):
+                idx = row_start + j
+                if idx >= len(tt_sorted):
+                    break
+                r = tt_sorted.iloc[idx]
+                words = r.get("top_words", "") if pd.notna(r.get("top_words", "")) else ""
+                col.markdown(
+                    f'<div class="tm-topic-card">'
+                    f'<div class="tm-topic-name">{html.escape(str(r["topic_name"]))}</div>'
+                    f'<div class="tm-topic-words">🏷️ {html.escape(str(words)[:120])}</div>'
+                    f'<div class="tm-topic-stats">'
+                    f'<div class="tm-topic-stat"><strong>{int(r["movies"]):,}</strong> movies</div>'
+                    f'<div class="tm-topic-stat"><strong>{r["avg_rating"]:.2f}</strong> avg rating</div>'
+                    f'<div class="tm-topic-stat"><strong>{r["high_rated"]:.0f}%</strong> high-rated</div>'
+                    f'<div class="tm-topic-stat"><strong>{r["avg_popularity"]:.1f}</strong> popularity</div>'
+                    f'</div></div>',
+                    unsafe_allow_html=True,
+                )
+
+        with more("full topic table"):
+            table(tt.round(3).rename(columns={"high_rated": "high_rated_%"}))
+
         best = tt.loc[tt["avg_rating"].idxmax()]; worst = tt.loc[tt["avg_rating"].idxmin()]
         st.caption(f"Highest rated topic: {best['topic_name']} ({best['avg_rating']:.2f}). Lowest: {worst['topic_name']} "
                    f"({worst['avg_rating']:.2f}). Rating differences between topics are small, so describe them as tendencies.")
 
+        st.markdown('<hr class="tm-divider">', unsafe_allow_html=True)
+
+        # ---- Word associations ----
         ge2 = ft.explode("genres").reset_index(drop=True)
 
         tw = read("text/terms_association.csv")
         if need(tw, "data/text/terms_association.csv", nb):
+            st.markdown(
+                '<div class="tm-section-header">'
+                '<div class="tm-icon" style="background:rgba(46,158,107,0.12);">🔤</div>'
+                '<h3>Word associations</h3></div>', unsafe_allow_html=True)
+            st.caption("Words that appear significantly more often in high-rated vs low-rated movie overviews (chi-square, Bonferroni corrected).")
             sg = tw[tw["significant"]]
             n = st.slider("Words per side", 5, 20, 12)
             pk = pd.concat([sg.nlargest(n, "diff"), sg.nsmallest(n, "diff")]).drop_duplicates("term").sort_values("diff")
@@ -579,7 +684,14 @@ with tabs[3]:
                              title="Words linked to high-rated (right) vs low-rated (left) movies",
                              labels={"x": "Difference in share of movies (percentage points)", "term": ""})
                 show(fig)
-                st.caption("Significant words only (chi-square with Bonferroni correction). Not affected by the sidebar filters.")
+
+        st.markdown('<hr class="tm-divider">', unsafe_allow_html=True)
+
+        # ---- Deeper analysis (expanders) ----
+        st.markdown(
+            '<div class="tm-section-header">'
+            '<div class="tm-icon" style="background:rgba(138,99,210,0.12);">🔬</div>'
+            '<h3>Deeper analysis</h3></div>', unsafe_allow_html=True)
 
         with more("topic share by year and genre-by-topic heatmap"):
             c1, c2 = st.columns(2)
@@ -617,15 +729,43 @@ with tabs[3]:
             st.caption(f"Polarity vs rating (Spearman): {rr:.3f}. Sentiment of the plot summary says very little about the rating. "
                        "It is the tone of the description, not audience opinion.")
 
-        st.subheader("Movie explorer")
-        q = st.text_input("Search title or overview")
-        ex = ft.assign(genres=ft["genres"].apply(", ".join))
+        st.markdown('<hr class="tm-divider">', unsafe_allow_html=True)
+
+        # ---- Movie explorer (with weighted rating fix) ----
+        st.markdown(
+            '<div class="tm-section-header">'
+            '<div class="tm-icon" style="background:rgba(242,142,43,0.12);">🎬</div>'
+            '<h3>Movie explorer</h3></div>', unsafe_allow_html=True)
+
+        # Weighted rating: IMDb formula WR = (v/(v+m))*R + (m/(v+m))*C
+        # m = minimum votes for credibility (percentile-based), C = catalogue mean
+        m_votes = ft["vote_count"].quantile(0.70)          # ~70th percentile as credibility threshold
+        C_mean = ft["vote_average"].mean()
+        ft_ex = ft.copy()
+        ft_ex["weighted_rating"] = (
+            (ft_ex["vote_count"] / (ft_ex["vote_count"] + m_votes)) * ft_ex["vote_average"]
+            + (m_votes / (ft_ex["vote_count"] + m_votes)) * C_mean
+        )
+
+        q = st.text_input("🔍 Search title or overview", placeholder="e.g. Spirited Away, war, family...")
+        sc1, sc2 = st.columns([2, 3])
+        with sc1:
+            sort_by = st.selectbox("Sort by", ["Weighted rating", "Vote average (raw)", "Vote count", "Popularity", "Release year"],
+                                   help="Weighted rating uses an IMDb-style formula that adjusts for vote count, "
+                                        "so niche titles with very few votes don't dominate the ranking.")
+        sort_map = {"Weighted rating": "weighted_rating", "Vote average (raw)": "vote_average",
+                    "Vote count": "vote_count", "Popularity": "popularity", "Release year": "release_year"}
+
+        ex = ft_ex.assign(genres=ft_ex["genres"].apply(", ".join))
         if q: ex = ex[ex["title"].str.contains(q, case=False, na=False) | ex["overview"].str.contains(q, case=False, na=False)]
-        ex = ex[["title", "release_year", "genres", "topic_name", "polarity", "vote_average", "vote_count", "overview"]]
-        ex = ex.sort_values("vote_average", ascending=False)
-        st.write(f"{len(ex):,} movies (showing the top 300 by rating)")
+        ex = ex[["title", "release_year", "genres", "topic_name", "polarity",
+                 "weighted_rating", "vote_average", "vote_count", "overview"]]
+        ex = ex.sort_values(sort_map[sort_by], ascending=False)
+
+        st.caption(f"{len(ex):,} movies · showing top 300 · "
+                   f"weighted rating uses m={m_votes:.0f} votes (70th percentile) and C={C_mean:.2f} (catalogue mean)")
         table(ex.head(300).round(3))
-        st.download_button("Download the filtered movies (CSV)", ex.to_csv(index=False).encode("utf-8"), "filtered_movies.csv", "text/csv")
+        st.download_button("📥 Download the filtered movies (CSV)", ex.to_csv(index=False).encode("utf-8"), "filtered_movies.csv", "text/csv")
 
 # ================= 5. Model results =================
 with tabs[4]:
