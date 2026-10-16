@@ -198,18 +198,18 @@ st.markdown(
         margin: 0;
         color: var(--ink);
         font-family: 'Space Grotesk', sans-serif;
-        font-size: 1.02rem;
+        font-size: 1.15rem;
         font-weight: 700;
     }
     .insight-copy {
         margin: 0;
         color: var(--muted);
-        line-height: 1.55;
-        font-size: 0.92rem;
+        line-height: 1.65;
+        font-size: 1.02rem;
     }
     .insight-label {
         color: var(--ink);
-        font-size: 0.78rem;
+        font-size: 0.92rem;
         font-weight: 700;
     }
     .insight-stat {
@@ -226,7 +226,7 @@ st.markdown(
     }
     .insight-stat span {
         color: var(--muted);
-        font-size: 0.78rem;
+        font-size: 0.9rem;
     }
     </style>
     """.replace("__INK__", theme_values["ink"])
@@ -245,31 +245,32 @@ st.markdown(
 
 # ---- EDIT THESE: recommendations shown on the last tab (add your time-series and text-mining ones) ----
 RECS = [
-    ("Plan by genre expectations",
-     "Documentary, Animation, History and Music movies are rated highest on average, Horror and Thriller lowest. "
-     "Judge a title against its own genre's usual rating, not against the whole catalogue."),
-    ("Do not read popularity as quality",
-     "Popularity and rating are only weakly related (correlation about 0.16). Popularity shows reach, so use ratings "
-     "and vote counts together when deciding what to keep or promote."),
-    ("Use content to screen ideas before release",
-     "A model using only content (genre, language, year, text length) reaches AUC 0.785 against 0.50 for guessing. "
-     "It is a useful first filter, but it misses about half of the eventually high-rated movies, so use it as one input."),
-    ("Track early audience engagement after release",
-     "Adding popularity and vote count lifts the model to AUC 0.836. Monitor early votes to update expectations."),
-    ("Look at non-English catalogue",
-     "Japanese and Korean movies that reach 20 votes average higher ratings. They are a self-selected group, so test "
-     "this with your own audience data before acting on it."),
-    ("Expect stable ratings and a crowded horror and thriller market",
-     "Average rating was flat at about 6.06 until 2019 and has sat near 6.3 since 2020. The forecast stays around 6.4 "
-     "with a wide band, so plan for a steady level, not further growth. Release month matters little (seasonal strength 0.07). "
-     "Horror and Thriller gained 3.8 and 3.3 points of genre share since the early 2000s while Drama lost 7.2, and these two "
-     "genres have the lowest average ratings, so they need clear quality differentiation."),
-    ("Use plot wording as an early quality signal",
-     "Plot summaries of high-rated movies lean on factual and historical words (documentary, war, history, music, journey), "
-     "while low-rated ones lean on formulaic crime and romance words (killer, evil, boyfriend, Christmas). The topic model finds "
-     "four broad themes: youth and war, love and family, work and power, and crime and murder. Use theme and wording to check a "
-     "pitch against how similar plots have been rated, and treat the differences as tendencies, not rules."),
-    ("[Add a recommendation from the text-mining topics]", "Edit RECS at the top of dashboard/app.py."),
+    ("Use genre benchmarks when evaluating titles",
+     "Documentary, Animation, History and Music titles have the strongest average ratings, while Horror and Thriller rank lower. "
+     "Evaluate each title against the typical performance of its genre rather than against the catalogue-wide average."),
+    ("Separate audience reach from perceived quality",
+     "Popularity and rating show only a weak relationship, with a correlation of approximately 0.16. Use popularity to assess reach "
+     "and ratings together with vote counts to assess audience reception."),
+    ("Apply predictive modelling as an early screening tool",
+     "The content-only model achieves an AUC of 0.785, compared with 0.500 for random classification. It can support early-stage "
+     "prioritisation, but it should complement—not replace—creative and commercial judgement."),
+    ("Use post-release engagement to update expectations",
+     "Adding popularity and vote count increases model AUC to 0.836. Monitoring early audience engagement can therefore improve "
+     "performance estimates after a title is released."),
+    ("Evaluate international content with appropriate context",
+     "Japanese and Korean titles that meet the 20-vote threshold have higher average ratings in this sample. Because this is a "
+     "self-selected group, validate the pattern with broader audience and market data before making investment decisions."),
+    ("Plan for stable ratings and competitive genre markets",
+     "Average ratings remained close to 6.06 through 2019 and have been near 6.3 since 2020. The forecast suggests stability rather "
+     "than continued growth. Horror and Thriller have expanded their genre share, while Drama has declined, increasing the need for "
+     "clear differentiation and consistent execution."),
+    ("Use plot language as a supplementary quality signal",
+     "Higher-rated summaries more often use factual and historical language, while lower-rated summaries contain more formulaic crime "
+     "and romance terms. Topic and wording analysis can inform early concept reviews, but these patterns should be treated as signals "
+     "rather than definitive predictors."),
+    ("Translate text-mining results into focused concept reviews",
+     "Compare a proposed story with the themes and language associated with similar titles. Use the comparison to identify strengths, "
+     "risks and opportunities for refinement before production."),
 ]
 
 # ---- Review 1 results (static, taken from the notebook) ----
