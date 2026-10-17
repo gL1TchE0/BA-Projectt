@@ -21,26 +21,22 @@ HIGH = 6.5                                   # a movie is "high-rated" at this r
 BLUE, ORANGE, GREEN, RED, GREY = "#1f4e79", "#f28e2b", "#2e9e6b", "#d1495b", "#9aa5b1"
 MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 
-if "theme" not in st.session_state:
-    st.session_state.theme = "Light"
-theme = st.sidebar.radio("Appearance", ["Light", "Dark"], horizontal=True, key="theme")
-dark_mode = theme == "Dark"
+dark_mode = True
+BLUE = "#72b7e8"
 theme_values = {
-    "app_bg": "#101722" if dark_mode else "#f7f9fc",
-    "app_gradient_end": "#172131" if dark_mode else "#ffffff",
-    "header_bg": "rgba(16, 23, 34, 0.86)" if dark_mode else "rgba(247, 249, 252, 0.86)",
-    "ink": "#f2f5f8" if dark_mode else "#172033",
-    "muted": "#aab6c5" if dark_mode else "#667085",
-    "navy": "#a9d4f5" if dark_mode else "#193b63",
-    "sky": "#1c344c" if dark_mode else "#eaf3fb",
-    "line": "#2c3a4d" if dark_mode else "#e5eaf1",
-    "surface": "#182333" if dark_mode else "#ffffff",
-    "sidebar_start": "#152437" if dark_mode else "#f1f6fb",
-    "sidebar_end": "#101722" if dark_mode else "#ffffff",
-    "plot": "#182333" if dark_mode else "#ffffff",
+    "app_bg": "#101722",
+    "app_gradient_end": "#172131",
+    "header_bg": "rgba(16, 23, 34, 0.86)",
+    "ink": "#f2f5f8",
+    "muted": "#aab6c5",
+    "navy": "#a9d4f5",
+    "sky": "#1c344c",
+    "line": "#2c3a4d",
+    "surface": "#182333",
+    "sidebar_start": "#152437",
+    "sidebar_end": "#101722",
+    "plot": "#182333",
 }
-if dark_mode:
-    BLUE = "#72b7e8"
 
 st.markdown(
     """
@@ -228,6 +224,18 @@ st.markdown(
         color: var(--muted);
         font-size: 0.9rem;
     }
+    .tm-pill {
+        display: inline-block;
+        background: var(--sky);
+        color: var(--navy);
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        padding: 0.15rem 0.55rem;
+        font-size: 0.72rem;
+        font-weight: 600;
+        margin: 0.15rem 0.25rem 0.15rem 0;
+        letter-spacing: 0.02em;
+    }
     </style>
     """.replace("__INK__", theme_values["ink"])
     .replace("__MUTED__", theme_values["muted"])
@@ -412,22 +420,22 @@ with tabs[0]:
         k = st.columns(5)
         k[0].metric("Movies", f"{len(f):,}")
         k[1].metric("Average rating", f"{f['vote_average'].mean():.2f}")
-        k[2].metric("High-rated share", f"{f['high_rated'].mean():.0%}")
-        k[3].metric("Average popularity", f"{f['popularity'].mean():.2f}")
+        k[2].metric("High-rated share", f"{f['high_rated'].mean():.0%}",
+                    help="Percentage of movies with vote_average ≥ 6.5 (reliable titles with 20+ votes).")
+        k[3].metric("Average popularity", f"{f['popularity'].mean():.2f}",
+                    help="TMDB activity score based on daily views, searches, and user watchlist additions.")
         k[4].metric("Years covered", f"{f['release_year'].min()} to {f['release_year'].max()}")
         g = f.explode("genres")
         gs = g.groupby("genres").agg(movies=("id", "size"), rating=("vote_average", "mean")).reset_index()
-        c1, c2 = st.columns(2)
-        with c1:
-            ya = f.groupby("release_year")["vote_average"].mean().reset_index()
-            fig = px.line(ya, x="release_year", y="vote_average", markers=True, title="Average rating by release year",
-                          labels={"release_year": "Year", "vote_average": "Average rating"}, color_discrete_sequence=[BLUE])
-            show(fig)
-        with c2:
-            fig = px.bar(gs.sort_values("movies").tail(12), x="movies", y="genres", orientation="h", color="rating",
-                         color_continuous_scale="RdYlGn", title="Movies per genre (colour = average rating)",
-                         labels={"movies": "Movies", "genres": "", "rating": "Avg rating"})
-            show(fig)
+        ya = f.groupby("release_year")["vote_average"].mean().reset_index()
+        fig = px.line(ya, x="release_year", y="vote_average", markers=True, title="Average rating by release year",
+                      labels={"release_year": "Year", "vote_average": "Average rating"}, color_discrete_sequence=[BLUE])
+        show(fig)
+
+        fig = px.bar(gs.sort_values("movies").tail(12), x="movies", y="genres", orientation="h", color="rating",
+                     color_continuous_scale="RdYlGn", title="Movies per genre (colour = average rating)",
+                     labels={"movies": "Movies", "genres": "", "rating": "Avg rating"})
+        show(fig)
         with more("distribution of ratings"):
             fig = px.histogram(f, x="vote_average", nbins=40, title="Distribution of ratings", color_discrete_sequence=[BLUE],
                                labels={"vote_average": "Rating"})
@@ -454,18 +462,16 @@ with tabs[1]:
             st.caption(f"Highest rated genre: {hi_['genres']} ({hi_['rating']:.2f}). Lowest: {lo_['genres']} ({lo_['rating']:.2f}). "
                        "Genres with fewer than 30 movies are hidden.")
         with more("rating by language and by decade"):
-            c3, c4 = st.columns(2)
-            with c3:
-                ls = (f.groupby("original_language").agg(movies=("id", "size"), rating=("vote_average", "mean"))
-                        .sort_values("movies", ascending=False).head(10).reset_index().sort_values("rating"))
-                fig = px.bar(ls, x="rating", y="original_language", orientation="h", color_discrete_sequence=[BLUE],
-                             title="Average rating by language (10 most common)", hover_data={"movies": True},
-                             labels={"rating": "Average rating", "original_language": "Language"})
-                show(fig)
-            with c4:
-                fig = px.box(f.sort_values("decade"), x="decade", y="vote_average", color_discrete_sequence=[BLUE],
-                             title="Rating by decade", labels={"decade": "Decade", "vote_average": "Rating"})
-                show(fig)
+            ls = (f.groupby("original_language").agg(movies=("id", "size"), rating=("vote_average", "mean"))
+                    .sort_values("movies", ascending=False).head(10).reset_index().sort_values("rating"))
+            fig = px.bar(ls, x="rating", y="original_language", orientation="h", color_discrete_sequence=[BLUE],
+                         title="Average rating by language (10 most common)", hover_data={"movies": True},
+                         labels={"rating": "Average rating", "original_language": "Language"})
+            show(fig)
+
+            fig = px.box(f.sort_values("decade"), x="decade", y="vote_average", color_discrete_sequence=[BLUE],
+                         title="Rating by decade", labels={"decade": "Decade", "vote_average": "Rating"})
+            show(fig)
         with more("rating vs popularity (scatter)"):
             s = f.sample(min(3000, len(f)), random_state=1).assign(
                 group=lambda d: np.where(d["high_rated"] == 1, "High-rated", "Not high-rated"))
@@ -526,30 +532,28 @@ with tabs[2]:
             st.caption(f"Best model on the test months: {best}." + (" No model beat the naive baseline, so the series has little "
                        "predictable structure beyond its recent level." if str(best).startswith("Naive") else ""))
         with more("seasonality and change in genre share"):
-            c1, c2 = st.columns(2)
-            with c1:
-                if need(se, "data/ts/seasonality.csv", nb):
-                    se = se.assign(m=lambda d: d["month_of_year"].map(lambda i: MONTHS[int(i) - 1]))
-                    fig = px.bar(se, x="m", y="avg_rating", color_discrete_sequence=[GREEN], title="Average rating by release month",
-                                 labels={"m": "Month", "avg_rating": "Average rating"})
-                    fig.update_yaxes(range=[se["avg_rating"].min() - 0.1, se["avg_rating"].max() + 0.1])
-                    show(fig)
-                    st.caption(f"Highest in {se.loc[se['avg_rating'].idxmax(), 'm']}, lowest in {se.loc[se['avg_rating'].idxmin(), 'm']}; "
-                               f"the whole range is only {se['avg_rating'].max() - se['avg_rating'].min():.2f} rating points.")
-            with c2:
-                if need(gc, "data/ts/genre_share_change.csv", nb):
-                    cc = gc.columns[1]
-                    fig = px.bar(gc.sort_values(cc), x=cc, y="genre", orientation="h", title="Change in genre share (percentage points)",
-                                 color=gc.sort_values(cc)[cc] > 0, color_discrete_map={True: GREEN, False: RED},
-                                 labels={cc: "Change (pp)", "genre": ""})
-                    fig.update_layout(showlegend=False); show(fig)
-                    st.caption(f"Biggest rise: {gc.loc[gc[cc].idxmax(), 'genre']} ({gc[cc].max():+.1f} pp). "
-                               f"Biggest fall: {gc.loc[gc[cc].idxmin(), 'genre']} ({gc[cc].min():+.1f} pp), "
-                               "first five years vs last five modelled years.")
+            if need(se, "data/ts/seasonality.csv", nb):
+                se = se.assign(m=lambda d: d["month_of_year"].map(lambda i: MONTHS[int(i) - 1]))
+                fig = px.bar(se, x="m", y="avg_rating", color_discrete_sequence=[GREEN], title="Average rating by release month",
+                             labels={"m": "Month", "avg_rating": "Average rating"})
+                fig.update_yaxes(range=[se["avg_rating"].min() - 0.1, se["avg_rating"].max() + 0.1])
+                show(fig)
+                st.caption(f"Highest in {se.loc[se['avg_rating'].idxmax(), 'm']}, lowest in {se.loc[se['avg_rating'].idxmin(), 'm']}; "
+                           f"the whole range is only {se['avg_rating'].max() - se['avg_rating'].min():.2f} rating points.")
+
+            if need(gc, "data/ts/genre_share_change.csv", nb):
+                cc = gc.columns[1]
+                fig = px.bar(gc.sort_values(cc), x=cc, y="genre", orientation="h", title="Change in genre share (percentage points)",
+                             color=gc.sort_values(cc)[cc] > 0, color_discrete_map={True: GREEN, False: RED},
+                             labels={cc: "Change (pp)", "genre": ""})
+                fig.update_layout(showlegend=False); show(fig)
+                st.caption(f"Biggest rise: {gc.loc[gc[cc].idxmax(), 'genre']} ({gc[cc].max():+.1f} pp). "
+                           f"Biggest fall: {gc.loc[gc[cc].idxmin(), 'genre']} ({gc[cc].min():+.1f} pp), "
+                           "first five years vs last five modelled years.")
 
 # ================= 4. Text mining =================
 with tabs[3]:
-    nb = "Text_Mining_Revised.ipynb"
+    nb = "TextMining.ipynb"
     if not need(text, "data/text/text_movie_level.csv", nb): pass
     elif ft.empty: st.warning("No movies match the current filters (text mining uses movies with 20 or more votes).")
     else:
@@ -612,10 +616,11 @@ with tabs[3]:
         avg_pol = ft["polarity"].mean()
         dominant_topic = ft["topic_name"].value_counts().idxmax()
         kc = st.columns(4)
-        kc[0].markdown(f'<div class="tm-kpi"><strong>{len(ft):,}</strong><span>Movies analysed</span></div>', unsafe_allow_html=True)
-        kc[1].markdown(f'<div class="tm-kpi"><strong>{ft["vote_average"].mean():.2f}</strong><span>Average rating</span></div>', unsafe_allow_html=True)
-        kc[2].markdown(f'<div class="tm-kpi"><strong>{avg_pol:.3f}</strong><span>Average polarity</span></div>', unsafe_allow_html=True)
-        kc[3].markdown(f'<div class="tm-kpi"><strong>{dominant_topic}</strong><span>Most common topic</span></div>', unsafe_allow_html=True)
+        kc[0].metric("Movies analysed", f"{len(ft):,}")
+        kc[1].metric("Average rating", f"{ft['vote_average'].mean():.2f}")
+        kc[2].metric("Average polarity", f"{avg_pol:.3f}",
+                     help="Plot summary sentiment score: -1.0 (negative/dark) to +1.0 (positive/joyful). 0.0 is neutral.")
+        kc[3].metric("Most common topic", dominant_topic)
 
         st.markdown('<hr class="tm-divider">', unsafe_allow_html=True)
 
@@ -632,7 +637,7 @@ with tabs[3]:
         if tsum is not None: tt = tt.merge(tsum[["topic", "top_words", "coherence"]], on="topic", how="left")
         tt["high_rated"] = (tt["high_rated"] * 100).round(1)
 
-        # topic cards (2 per row)
+        # topic cards (2 per row with pill badges)
         tt_sorted = tt.sort_values("avg_rating", ascending=False)
         for row_start in range(0, len(tt_sorted), 2):
             cols = st.columns(2)
@@ -641,11 +646,12 @@ with tabs[3]:
                 if idx >= len(tt_sorted):
                     break
                 r = tt_sorted.iloc[idx]
-                words = r.get("top_words", "") if pd.notna(r.get("top_words", "")) else ""
+                raw_words = [w.strip() for w in str(r.get("top_words", "")).split(",") if w.strip()][:7]
+                pills_html = "".join([f'<span class="tm-pill">#{html.escape(w)}</span>' for w in raw_words])
                 col.markdown(
                     f'<div class="tm-topic-card">'
                     f'<div class="tm-topic-name">{html.escape(str(r["topic_name"]))}</div>'
-                    f'<div class="tm-topic-words">🏷️ {html.escape(str(words)[:120])}</div>'
+                    f'<div class="tm-topic-words" style="margin: 0.35rem 0 0.65rem;">{pills_html}</div>'
                     f'<div class="tm-topic-stats">'
                     f'<div class="tm-topic-stat"><strong>{int(r["movies"]):,}</strong> movies</div>'
                     f'<div class="tm-topic-stat"><strong>{r["avg_rating"]:.2f}</strong> avg rating</div>'
@@ -687,47 +693,29 @@ with tabs[3]:
 
         st.markdown('<hr class="tm-divider">', unsafe_allow_html=True)
 
-        # ---- Deeper analysis (expanders) ----
+        # ---- Key Text Insights (Topic & Sentiment) ----
         st.markdown(
             '<div class="tm-section-header">'
             '<div class="tm-icon" style="background:rgba(138,99,210,0.12);">🔬</div>'
-            '<h3>Deeper analysis</h3></div>', unsafe_allow_html=True)
+            '<h3>Topic & sentiment insights</h3></div>', unsafe_allow_html=True)
 
-        with more("topic share by year and genre-by-topic heatmap"):
-            c1, c2 = st.columns(2)
-            with c1:
-                ty = pd.crosstab(ft["release_year"], ft["topic_name"], normalize="index").reset_index().melt("release_year", value_name="share")
-                fig = px.area(ty, x="release_year", y="share", color="topic_name", title="Topic share by release year",
-                              labels={"release_year": "Year", "share": "Share of movies", "topic_name": "Topic"})
-                show(fig)
-            with c2:
-                top8 = ge2["genres"].value_counts().head(8).index
-                sub = ge2[ge2["genres"].isin(top8)]
-                hm = pd.crosstab(sub["genres"], sub["topic_name"], normalize="index")
-                fig = px.imshow(hm.round(2), text_auto=True, color_continuous_scale="YlOrRd", aspect="auto",
-                                title="Share of each genre's movies by topic", labels={"x": "Topic", "y": "Genre", "color": "Share"})
-                show(fig)
+        with more("genre-by-topic distribution heatmap"):
+            top8 = ge2["genres"].value_counts().head(8).index
+            sub = ge2[ge2["genres"].isin(top8)]
+            hm = pd.crosstab(sub["genres"], sub["topic_name"], normalize="index")
+            fig = px.imshow(hm.round(2), text_auto=True, color_continuous_scale="YlOrRd", aspect="auto",
+                            title="Share of each genre\'s movies by topic", labels={"x": "Topic", "y": "Genre", "color": "Share"})
+            show(fig)
+            st.caption("Confirms how unsupervised LDA topics map directly to standard movie genres.")
 
-        with more("sentiment of plot summaries"):
-            s1, s2, s3 = st.columns(3)
-            with s1:
-                sg_ = ge2.groupby("genres").agg(movies=("id", "size"), polarity=("polarity", "mean")).query("movies >= 30")
-                fig = px.bar(sg_.sort_values("polarity").tail(10).reset_index(), x="polarity", y="genres", orientation="h",
-                             color_discrete_sequence=[BLUE], title="Average polarity by genre", labels={"polarity": "Polarity", "genres": ""})
-                show(fig)
-            with s2:
-                sy = ft.groupby("release_year")["polarity"].mean().reset_index()
-                fig = px.line(sy, x="release_year", y="polarity", title="Average polarity by year", color_discrete_sequence=[ORANGE],
-                              labels={"release_year": "Year", "polarity": "Polarity"})
-                show(fig)
-            with s3:
-                sr = ft.assign(group=np.where(ft["high_rated"] == 1, "High-rated", "Low-rated")).groupby("group")[["polarity", "subjectivity"]].mean().reset_index()
-                fig = px.bar(sr.melt("group"), x="group", y="value", color="variable", barmode="group",
-                             title="Polarity and subjectivity by rating group", labels={"value": "Average score", "group": "", "variable": ""})
-                show(fig)
+        with more("sentiment of plot summaries by rating"):
+            sr = ft.assign(group=np.where(ft["high_rated"] == 1, "High-rated", "Low-rated")).groupby("group")[["polarity", "subjectivity"]].mean().reset_index()
+            fig = px.bar(sr.melt("group"), x="group", y="value", color="variable", barmode="group",
+                         title="Polarity and subjectivity by rating group", labels={"value": "Average score", "group": "", "variable": ""})
+            show(fig)
             rr = ft[["polarity", "vote_average"]].corr(method="spearman").iloc[0, 1]
-            st.caption(f"Polarity vs rating (Spearman): {rr:.3f}. Sentiment of the plot summary says very little about the rating. "
-                       "It is the tone of the description, not audience opinion.")
+            st.caption(f"Polarity vs rating (Spearman correlation): r = {rr:.3f}. "
+                       "Overview sentiment does not drive or predict audience rating; it only reflects summary tone.")
 
         st.markdown('<hr class="tm-divider">', unsafe_allow_html=True)
 
@@ -737,33 +725,35 @@ with tabs[3]:
             '<div class="tm-icon" style="background:rgba(242,142,43,0.12);">🎬</div>'
             '<h3>Movie explorer</h3></div>', unsafe_allow_html=True)
 
-        # Weighted rating: IMDb formula WR = (v/(v+m))*R + (m/(v+m))*C
-        # m = minimum votes for credibility (percentile-based), C = catalogue mean
-        m_votes = ft["vote_count"].quantile(0.70)          # ~70th percentile as credibility threshold
+        # Rating adjustment for credibility based on vote count
+        m_votes = ft["vote_count"].quantile(0.70)
         C_mean = ft["vote_average"].mean()
         ft_ex = ft.copy()
-        ft_ex["weighted_rating"] = (
+        ft_ex["rating"] = (
             (ft_ex["vote_count"] / (ft_ex["vote_count"] + m_votes)) * ft_ex["vote_average"]
             + (m_votes / (ft_ex["vote_count"] + m_votes)) * C_mean
         )
 
         q = st.text_input("🔍 Search title or overview", placeholder="e.g. Spirited Away, war, family...")
-        sc1, sc2 = st.columns([2, 3])
+        sc1, sc2 = st.columns([2, 2])
         with sc1:
-            sort_by = st.selectbox("Sort by", ["Weighted rating", "Vote average (raw)", "Vote count", "Popularity", "Release year"],
-                                   help="Weighted rating uses an IMDb-style formula that adjusts for vote count, "
-                                        "so niche titles with very few votes don't dominate the ranking.")
-        sort_map = {"Weighted rating": "weighted_rating", "Vote average (raw)": "vote_average",
+            topic_opts = ["All topics"] + sorted([str(t) for t in ft_ex["topic_name"].dropna().unique()])
+            sel_topic = st.selectbox("Filter by topic", topic_opts)
+        with sc2:
+            sort_by = st.selectbox("Sort by", ["Rating", "Raw vote average", "Vote count", "Popularity", "Release year"],
+                                   help="Rating adjusts for vote volume so titles with very few votes don't dominate the top rankings.")
+        sort_map = {"Rating": "rating", "Raw vote average": "vote_average",
                     "Vote count": "vote_count", "Popularity": "popularity", "Release year": "release_year"}
 
         ex = ft_ex.assign(genres=ft_ex["genres"].apply(", ".join))
+        if sel_topic != "All topics":
+            ex = ex[ex["topic_name"] == sel_topic]
         if q: ex = ex[ex["title"].str.contains(q, case=False, na=False) | ex["overview"].str.contains(q, case=False, na=False)]
         ex = ex[["title", "release_year", "genres", "topic_name", "polarity",
-                 "weighted_rating", "vote_average", "vote_count", "overview"]]
+                 "rating", "vote_average", "vote_count", "overview"]]
         ex = ex.sort_values(sort_map[sort_by], ascending=False)
 
-        st.caption(f"{len(ex):,} movies · showing top 300 · "
-                   f"weighted rating uses m={m_votes:.0f} votes (70th percentile) and C={C_mean:.2f} (catalogue mean)")
+        st.caption(f"{len(ex):,} movies · showing top 300 · sorted by {sort_by.lower()}")
         table(ex.head(300).round(3))
         st.download_button("📥 Download the filtered movies (CSV)", ex.to_csv(index=False).encode("utf-8"), "filtered_movies.csv", "text/csv")
 
@@ -773,25 +763,94 @@ with tabs[4]:
     st.caption(f"Target: rating of {HIGH} or more, for movies with 20 or more votes (10,078 movies, 39% high-rated). "
                "Stratified 80/20 split: 8,062 training and 2,016 test movies. Results are on the test set.")
     table(METRICS.style.format({c: "{:.3f}" for c in METRICS.columns[1:]}))
-    c1, c2 = st.columns(2)
-    with c1:
-        cm = pd.DataFrame([[1077, 153], [334, 452]], index=["Actual: not high", "Actual: high"], columns=["Predicted: not high", "Predicted: high"])
-        fig = px.imshow(cm, text_auto=True, color_continuous_scale="Blues", title="Confusion matrix, Random Forest set B")
-        show(fig)
-    with c2:
-        st.markdown("**Robustness:** with at least 50 votes (5,717 movies) the AUC is 0.841, so the results do not depend on the 20-vote cut-off.")
-        st.info("Set B uses popularity and votes, which are known only after release, so it explains ratings but cannot forecast a new film. "
-                "Set A is the pre-release version. Importance shows what the model uses, not cause and effect.")
+    cm = pd.DataFrame([[1077, 153], [334, 452]], index=["Actual: not high", "Actual: high"], columns=["Predicted: not high", "Predicted: high"])
+    fig = px.imshow(cm, text_auto=True, color_continuous_scale="Blues", title="Confusion matrix, Random Forest set B")
+    show(fig)
+
+    st.markdown("**Robustness:** with at least 50 votes (5,717 movies) the AUC is 0.841, so the results do not depend on the 20-vote cut-off.")
+    st.info("Set B uses popularity and votes, which are known only after release, so it explains ratings but cannot forecast a new film. "
+            "Set A is the pre-release version. Importance shows what the model uses, not cause and effect.")
+
     with more("cross-validation AUC before and after tuning"):
         table(CV)
+
     with more("top 15 features for set A and set B"):
-        c3, c4 = st.columns(2)
-        for col, name, imp, colr in [(c3, "Set B (with popularity and votes)", IMP_B, BLUE), (c4, "Set A (content only)", IMP_A, ORANGE)]:
-            with col:
-                d = pd.Series(imp).sort_values().reset_index(); d.columns = ["feature", "importance"]
-                fig = px.bar(d, x="importance", y="feature", orientation="h", color_discrete_sequence=[colr],
-                             title=f"Top 15 features, {name}", labels={"importance": "Drop in AUC when shuffled", "feature": ""})
-                show(fig)
+        for name, imp, colr in [("Set B (with popularity and votes)", IMP_B, BLUE), ("Set A (content only)", IMP_A, ORANGE)]:
+            d = pd.Series(imp).sort_values().reset_index(); d.columns = ["feature", "importance"]
+            fig = px.bar(d, x="importance", y="feature", orientation="h", color_discrete_sequence=[colr],
+                         title=f"Top 15 features, {name}", labels={"importance": "Drop in AUC when shuffled", "feature": ""})
+            show(fig)
+
+    st.markdown('<hr class="tm-divider" style="margin:1.8rem 0 1rem;">', unsafe_allow_html=True)
+    st.subheader("🎬 Pre-Release Movie Success Predictor")
+    st.caption("Test a movie concept before production using the trained Random Forest (Set A: Content-only) model.")
+
+    with st.expander("Try the Interactive Concept Predictor", expanded=True):
+        pcol1, pcol2 = st.columns(2)
+        with pcol1:
+            sim_genres = st.multiselect(
+                "Select Genre(s)",
+                [
+                    "Action", "Adventure", "Animation", "Comedy", "Crime", "Documentary",
+                    "Drama", "Family", "Fantasy", "History", "Horror", "Music", "Mystery",
+                    "Romance", "Science Fiction", "TV Movie", "Thriller", "War", "Western"
+                ],
+                default=["Animation", "Adventure"]
+            )
+            sim_lang = st.selectbox(
+                "Original Language",
+                ["English", "Japanese", "French", "Spanish", "German", "Italian", "Korean", "Hindi", "Russian", "Chinese", "Other"],
+                index=0
+            )
+        with pcol2:
+            sim_year = st.slider("Target Release Year", 2000, 2030, 2025)
+            sim_month = st.selectbox("Target Release Month", list(range(1, 13)), format_func=lambda m: MONTHS[m - 1], index=10)
+            sim_words = st.slider("Synopsis Length (word count)", 10, 150, 50)
+
+        model_path = ROOT / "models" / "RandForest_A.pkl"
+        if model_path.exists():
+            import joblib
+            try:
+                rf_model = joblib.load(model_path)
+                feats = rf_model.feature_names_in_
+                row = pd.DataFrame([{f: 0 for f in feats}])
+                row["release_year"] = sim_year
+                row["month"] = sim_month
+                row["ov_words"] = sim_words
+                row["n_genres"] = len(sim_genres)
+                for g in sim_genres:
+                    g_col = f"g_{g}"
+                    if g_col in row.columns:
+                        row[g_col] = 1
+                lang_map = {
+                    "English": "l_en", "Japanese": "l_ja", "French": "l_fr", "Spanish": "l_es",
+                    "German": "l_de", "Italian": "l_it", "Korean": "l_ko", "Hindi": "l_hi",
+                    "Russian": "l_ru", "Chinese": "l_zh", "Other": "l_other"
+                }
+                l_col = lang_map.get(sim_lang, "l_other")
+                if l_col in row.columns:
+                    row[l_col] = 1
+
+                prob = rf_model.predict_proba(row)[0, 1]
+                is_high = prob >= 0.5
+                badge_color = "#2e9e6b" if is_high else "#d1495b"
+                badge_title = "HIGH-RATED (≥ 6.5)" if is_high else "NOT HIGH-RATED (< 6.5)"
+
+                st.markdown(
+                    f'''
+                    <div style="background:var(--surface); border:1px solid var(--line); border-left:5px solid {badge_color}; border-radius:12px; padding:1.1rem 1.3rem; margin-top:0.8rem;">
+                        <span style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.08em; font-weight:700; color:{badge_color};">ML Classification Output</span>
+                        <h3 style="margin:0.2rem 0 0.4rem; color:var(--ink);">{badge_title} · {prob:.1%} Probability</h3>
+                        <p style="margin:0; font-size:0.92rem; color:var(--muted); line-height:1.5;">
+                            Evaluated using pre-release metadata ({len(sim_genres)} genre(s), {sim_lang} language, {MONTHS[sim_month-1]} {sim_year} release).
+                            {"This concept aligns with characteristics of historically well-received titles." if is_high else "This concept faces higher odds of receiving average or polarized reviews based on historical benchmarks."}
+                        </p>
+                    </div>
+                    ''',
+                    unsafe_allow_html=True
+                )
+            except Exception as e:
+                st.caption(f"Simulator error: {e}")
 
 # ================= 6. Insights =================
 with tabs[5]:
