@@ -321,7 +321,7 @@ RECS = [
      "risks and opportunities for refinement before production."),
 ]
 
-# ---- Review 1 results (static, taken from the notebook) ----
+# ---- Predictive model results (static benchmarks) ----
 METRICS = pd.DataFrame({
     "Model": ["Baseline (majority class)", "Random Forest, set A (content only)", "Random Forest, set B (+ popularity and votes)"],
     "Accuracy": [0.610, 0.736, 0.758], "Precision": [0.0, 0.720, 0.747], "Recall": [0.0, 0.527, 0.575],
@@ -450,7 +450,7 @@ st.sidebar.caption("Filters apply to the Overview, EDA and Text mining tabs. Tim
 
 f = filt(clean, *yr, gsel, lsel, minv) if clean is not None else None
 ft = filt(text, *yr, gsel, lsel, max(minv, 20)) if text is not None else None
-tabs = st.tabs(["Overview", "EDA", "Time series", "Text mining", "Model results", "Insights"])
+tabs = st.tabs(["Overview", "EDA", "Time series", "Text mining", "Predict a movie", "Insights"])
 
 # ================= 1. Overview =================
 with tabs[0]:
@@ -797,19 +797,86 @@ with tabs[3]:
         table(ex.head(300).round(3))
         st.download_button("📥 Download the filtered movies (CSV)", ex.to_csv(index=False).encode("utf-8"), "filtered_movies.csv", "text/csv")
 
-# ================= 5. Model results =================
+# ================= 5. Predict a movie =================
 with tabs[4]:
-    st.subheader("Predicting high-rated movies (Review 1)")
+    st.subheader("🎬 Pre-Release Movie Success Predictor")
+    st.caption("Estimate the likelihood of high audience ratings (≥ 6.5) for a movie concept before production using the trained Random Forest classifier.")
+
+    pcol1, pcol2 = st.columns(2)
+    with pcol1:
+        sim_genres = st.multiselect(
+            "Select Genre(s)",
+            [
+                "Action", "Adventure", "Animation", "Comedy", "Crime", "Documentary",
+                "Drama", "Family", "Fantasy", "History", "Horror", "Music", "Mystery",
+                "Romance", "Science Fiction", "TV Movie", "Thriller", "War", "Western"
+            ],
+            default=["Animation", "Adventure"]
+        )
+        sim_lang = st.selectbox(
+            "Original Language",
+            ["English", "Japanese", "French", "Spanish", "German", "Italian", "Korean", "Hindi", "Russian", "Chinese", "Other"],
+            index=0
+        )
+    with pcol2:
+        sim_year = st.slider("Target Release Year", 2000, 2030, 2025)
+        sim_month = st.selectbox("Target Release Month", list(range(1, 13)), format_func=lambda m: MONTHS[m - 1], index=10)
+        sim_words = st.slider("Synopsis Length (word count)", 10, 150, 50)
+
+    model_path = ROOT / "models" / "RandForest_A.pkl"
+    if model_path.exists():
+        import joblib
+        try:
+            rf_model = joblib.load(model_path)
+            feats = rf_model.feature_names_in_
+            row = pd.DataFrame([{f: 0 for f in feats}])
+            row["release_year"] = sim_year
+            row["month"] = sim_month
+            row["ov_words"] = sim_words
+            row["n_genres"] = len(sim_genres)
+            for g in sim_genres:
+                g_col = f"g_{g}"
+                if g_col in row.columns:
+                    row[g_col] = 1
+            lang_map = {
+                "English": "l_en", "Japanese": "l_ja", "French": "l_fr", "Spanish": "l_es",
+                "German": "l_de", "Italian": "l_it", "Korean": "l_ko", "Hindi": "l_hi",
+                "Russian": "l_ru", "Chinese": "l_zh", "Other": "l_other"
+            }
+            l_col = lang_map.get(sim_lang, "l_other")
+            if l_col in row.columns:
+                row[l_col] = 1
+
+            prob = rf_model.predict_proba(row)[0, 1]
+            is_high = prob >= 0.5
+            badge_color = "#2e9e6b" if is_high else "#d1495b"
+            badge_title = "HIGH-RATED (≥ 6.5)" if is_high else "NOT HIGH-RATED (< 6.5)"
+
+            st.markdown(
+                f'''
+                <div style="background:var(--surface); border:1px solid var(--line); border-left:5px solid {badge_color}; border-radius:12px; padding:1.1rem 1.3rem; margin-top:0.8rem;">
+                    <span style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.08em; font-weight:700; color:{badge_color};">ML Classification Output</span>
+                    <h3 style="margin:0.2rem 0 0.4rem; color:var(--ink);">{badge_title} · {prob:.1%} Probability</h3>
+                    <p style="margin:0; font-size:0.92rem; color:var(--muted); line-height:1.5;">
+                        Evaluated using pre-release metadata ({len(sim_genres)} genre(s), {sim_lang} language, {MONTHS[sim_month-1]} {sim_year} release).
+                        {"This concept aligns with characteristics of historically well-received titles." if is_high else "This concept faces higher odds of receiving average or polarized reviews based on historical benchmarks."}
+                    </p>
+                </div>
+                ''',
+                unsafe_allow_html=True
+            )
+        except Exception as e:
+            st.caption(f"Simulator error: {e}")
+
+    st.markdown('<hr class="tm-divider" style="margin:2rem 0 1.2rem;">', unsafe_allow_html=True)
+    st.subheader("Model Performance & Benchmarks")
     st.caption(f"Target: rating of {HIGH} or more, for movies with 20 or more votes (10,078 movies, 39% high-rated). "
-               "Stratified 80/20 split: 8,062 training and 2,016 test movies. Results are on the test set.")
+               "Stratified 80/20 split: 8,062 training and 2,016 test movies. Evaluated on the held-out test set.")
     table(METRICS.style.format({c: "{:.3f}" for c in METRICS.columns[1:]}))
-    cm = pd.DataFrame([[1077, 153], [334, 452]], index=["Actual: not high", "Actual: high"], columns=["Predicted: not high", "Predicted: high"])
-    fig = px.imshow(cm, text_auto=True, color_continuous_scale="Blues", title="Confusion matrix, Random Forest set B")
-    show(fig)
 
     st.markdown("**Robustness:** with at least 50 votes (5,717 movies) the AUC is 0.841, so the results do not depend on the 20-vote cut-off.")
-    st.info("Set B uses popularity and votes, which are known only after release, so it explains ratings but cannot forecast a new film. "
-            "Set A is the pre-release version. Importance shows what the model uses, not cause and effect.")
+    st.info("Set B uses popularity and votes (known only after release), while Set A is the pre-release version used in the predictor above. "
+            "Feature importance reflects what the model relies on, not direct cause and effect.")
 
     with more("cross-validation AUC before and after tuning"):
         table(CV)
@@ -820,77 +887,6 @@ with tabs[4]:
             fig = px.bar(d, x="importance", y="feature", orientation="h", color_discrete_sequence=[colr],
                          title=f"Top 15 features, {name}", labels={"importance": "Drop in AUC when shuffled", "feature": ""})
             show(fig)
-
-    st.markdown('<hr class="tm-divider" style="margin:1.8rem 0 1rem;">', unsafe_allow_html=True)
-    st.subheader("🎬 Pre-Release Movie Success Predictor")
-    st.caption("Test a movie concept before production using the trained Random Forest (Set A: Content-only) model.")
-
-    with st.expander("Try the Interactive Concept Predictor", expanded=True):
-        pcol1, pcol2 = st.columns(2)
-        with pcol1:
-            sim_genres = st.multiselect(
-                "Select Genre(s)",
-                [
-                    "Action", "Adventure", "Animation", "Comedy", "Crime", "Documentary",
-                    "Drama", "Family", "Fantasy", "History", "Horror", "Music", "Mystery",
-                    "Romance", "Science Fiction", "TV Movie", "Thriller", "War", "Western"
-                ],
-                default=["Animation", "Adventure"]
-            )
-            sim_lang = st.selectbox(
-                "Original Language",
-                ["English", "Japanese", "French", "Spanish", "German", "Italian", "Korean", "Hindi", "Russian", "Chinese", "Other"],
-                index=0
-            )
-        with pcol2:
-            sim_year = st.slider("Target Release Year", 2000, 2030, 2025)
-            sim_month = st.selectbox("Target Release Month", list(range(1, 13)), format_func=lambda m: MONTHS[m - 1], index=10)
-            sim_words = st.slider("Synopsis Length (word count)", 10, 150, 50)
-
-        model_path = ROOT / "models" / "RandForest_A.pkl"
-        if model_path.exists():
-            import joblib
-            try:
-                rf_model = joblib.load(model_path)
-                feats = rf_model.feature_names_in_
-                row = pd.DataFrame([{f: 0 for f in feats}])
-                row["release_year"] = sim_year
-                row["month"] = sim_month
-                row["ov_words"] = sim_words
-                row["n_genres"] = len(sim_genres)
-                for g in sim_genres:
-                    g_col = f"g_{g}"
-                    if g_col in row.columns:
-                        row[g_col] = 1
-                lang_map = {
-                    "English": "l_en", "Japanese": "l_ja", "French": "l_fr", "Spanish": "l_es",
-                    "German": "l_de", "Italian": "l_it", "Korean": "l_ko", "Hindi": "l_hi",
-                    "Russian": "l_ru", "Chinese": "l_zh", "Other": "l_other"
-                }
-                l_col = lang_map.get(sim_lang, "l_other")
-                if l_col in row.columns:
-                    row[l_col] = 1
-
-                prob = rf_model.predict_proba(row)[0, 1]
-                is_high = prob >= 0.5
-                badge_color = "#2e9e6b" if is_high else "#d1495b"
-                badge_title = "HIGH-RATED (≥ 6.5)" if is_high else "NOT HIGH-RATED (< 6.5)"
-
-                st.markdown(
-                    f'''
-                    <div style="background:var(--surface); border:1px solid var(--line); border-left:5px solid {badge_color}; border-radius:12px; padding:1.1rem 1.3rem; margin-top:0.8rem;">
-                        <span style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.08em; font-weight:700; color:{badge_color};">ML Classification Output</span>
-                        <h3 style="margin:0.2rem 0 0.4rem; color:var(--ink);">{badge_title} · {prob:.1%} Probability</h3>
-                        <p style="margin:0; font-size:0.92rem; color:var(--muted); line-height:1.5;">
-                            Evaluated using pre-release metadata ({len(sim_genres)} genre(s), {sim_lang} language, {MONTHS[sim_month-1]} {sim_year} release).
-                            {"This concept aligns with characteristics of historically well-received titles." if is_high else "This concept faces higher odds of receiving average or polarized reviews based on historical benchmarks."}
-                        </p>
-                    </div>
-                    ''',
-                    unsafe_allow_html=True
-                )
-            except Exception as e:
-                st.caption(f"Simulator error: {e}")
 
 # ================= 6. Insights =================
 with tabs[5]:
