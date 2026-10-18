@@ -43,12 +43,12 @@ The dashboard is implemented in [`dashboard/app.py`](dashboard/app.py) and reads
 - **EDA:** genre, language, decade, rating, popularity, and correlation analysis.
 - **Time series:** monthly rating and popularity trends, rolling averages, forecasts, model comparison, seasonality, and changes in genre share.
 - **Text mining:** topic summaries, significant terms, topic trends, genre-topic relationships, sentiment analysis, and a searchable movie explorer.
-- **Model results:** test-set metrics, confusion matrix, cross-validation results, feature importance, and robustness notes.
+- **Predict a movie:** a pre-release Random Forest simulator plus test-set metrics, cross-validation results, feature importance, and robustness notes.
 - **Insights:** plain-language business recommendations, colour-coded insight cards, and live summary metrics that respond to the sidebar filters.
 
 ### Dashboard interface features
 
-- Light and dark appearance modes
+- Dark-themed appearance
 - Responsive wide layout
 - Sidebar filters for release year, genre, language, and minimum vote count
 - Interactive Plotly visualisations
@@ -195,11 +195,11 @@ BA-Project/
 ├── notebooks/
 │   ├── EDA.ipynb
 │   ├── Feature_Engineering.ipynb
-│   ├── TextMining.ipynb             # Text-mining workflow
-│   ├── Text_Mining.ipynb            # Alternate text-mining notebook
-│   └── Text_Mining_Revised.ipynb    # Revised text-mining workflow
+│   ├── TextMining.ipynb              # Text-mining workflow
+│   ├── Text_Mining.ipynb             # Alternate text-mining notebook
+│   ├── Text_Mining_Revised.ipynb     # Revised text-mining workflow
+│   └── TimeSeries.ipynb              # Time-series workflow
 ├── notebook.ipynb                     # Main analysis notebook
-├── TimeSeries.ipynb                   # Time-series workflow
 ├── DATA_DICTIONARY.md
 ├── Data Documentation Report.docx
 └── README.md
@@ -221,7 +221,7 @@ pip install pandas numpy requests python-dotenv matplotlib seaborn \
     streamlit plotly textblob wordcloud
 ```
 
-If the repository contains a dependency manifest in your local branch, install from it instead:
+The current [`requirements.txt`](requirements.txt) lists the dashboard runtime dependencies. For the notebooks, also install the analysis packages shown above:
 
 ```bash
 pip install -r requirements.txt
@@ -247,15 +247,15 @@ Start Jupyter:
 jupyter notebook
 ```
 
-Run the notebooks in the following order when rebuilding the analysis:
+Run the notebooks in the following order when rebuilding the analysis from raw data:
 
-1. `notebooks/EDA.ipynb`
-2. `notebooks/Feature_Engineering.ipynb`
-3. `notebook.ipynb`
-4. `TimeSeries.ipynb`
-5. `notebooks/TextMining.ipynb`
+1. `notebook.ipynb` — collect and clean the TMDB data and build the modelling dataset
+2. `notebooks/EDA.ipynb` — exploratory analysis
+3. `notebooks/Feature_Engineering.ipynb` — structured and TF-IDF features plus baseline results
+4. `notebooks/TimeSeries.ipynb` — time-series outputs
+5. `notebooks/TextMining.ipynb` or `notebooks/Text_Mining.ipynb` — text-mining analysis
 
-Notebook names and execution order may vary depending on the current analysis branch. The dashboard expects its source CSV outputs to be present under `data/processed`, `data/ts`, and `data/text`.
+`TextMining.ipynb` and `Text_Mining_Revised.ipynb` contain the focused Review 2 workflow; `Text_Mining.ipynb` is the broader text-analysis workflow that writes figures to `data/processed/`. Notebook execution order may vary depending on the current analysis branch. The dashboard expects its source CSV outputs to be present under `data/processed`, `data/ts`, and `data/text`.
 
 ### 3. Collect fresh TMDB data
 
