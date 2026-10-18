@@ -169,7 +169,7 @@ BA-Project/
 │   ├── Feature_Engineering.ipynb
 │   └── Text_Mining.ipynb
 ├── notebook.ipynb                     # Main analysis notebook
-├── Text_Mining_Revised.ipynb          # Revised text-mining workflow
+├── TextMining.ipynb          # Revised text-mining workflow
 ├── TimeSeries.ipynb                   # Time-series workflow
 ├── DATA_DICTIONARY.md
 ├── Data Documentation Report.docx
@@ -224,7 +224,7 @@ Run the notebooks in the following order when rebuilding the analysis:
 2. `notebooks/Feature_Engineering.ipynb`
 3. `notebook.ipynb`
 4. `TimeSeries.ipynb`
-5. `Text_Mining_Revised.ipynb`
+5. `TextMining.ipynb`
 
 Notebook names and execution order may vary depending on the current analysis branch. The dashboard expects its source CSV outputs to be present under `data/processed`, `data/ts`, and `data/text`.
 
