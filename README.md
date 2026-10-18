@@ -147,7 +147,7 @@ The text features are used primarily for interpretation and dashboard exploratio
 
 #### Text-mining outputs
 
-The notebook exports dashboard-ready results to `data/text/`:
+The repository contains dashboard-ready results in `data/text/`. The notebook computes the corresponding tables and model objects, while the checked-in files provide the inputs used by the dashboard. In the current notebook, `OUT` is configured for the original Windows workspace and there are no direct `to_csv` or model-serialization calls, so rerunning it does not automatically refresh these repository files.
 
 | File | Contents |
 |---|---|
@@ -160,9 +160,9 @@ The notebook exports dashboard-ready results to `data/text/`:
 | `topic_by_genre.csv` / `topic_by_year.csv` | Topic prevalence by genre and release year |
 | `genre_top_words.csv` | Most common overview terms by genre |
 | `sentiment_by_rating.csv` / `sentiment_by_genre.csv` / `sentiment_by_year.csv` | Polarity and subjectivity summaries |
-| `lda_topic_model.pkl` | Saved fitted LDA model |
+| `lda_topic_model.pkl` | Fitted LDA model used by the dashboard |
 
-Related figures are saved under `data/processed/`, including `differential_terms.png`, `differential_bigrams.png`, `wordclouds_rating.png`, `wordclouds_genre.png`, `topic_coherence.png`, `topic_vs_rating.png`, `topic_genre_heatmap.png`, `sentiment_analysis.png`, and `sentiment_trends.png`.
+The notebook's plotting helper saves figures to `reports/figures/text/` with names including `word_share_high_vs_low.png`, `significant_terms.png`, `wordclouds_rating.png`, `wordclouds_genre.png`, `top_bigrams.png`, `topic_coherence_scan.png`, `topic_vs_rating.png`, `topic_genre_heatmap.png`, `topic_share_by_year.png`, and `sentiment_analysis.png`. The repository also contains dashboard-oriented copies or related figures under `data/processed/`, including `differential_terms.png`, `differential_bigrams.png`, `topic_coherence.png`, and `sentiment_trends.png`.
 
 ## Repository structure
 
