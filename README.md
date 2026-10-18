@@ -130,11 +130,39 @@ See [`DATA_DICTIONARY.md`](DATA_DICTIONARY.md) for field definitions and data-qu
 
 ### 6. Text mining
 
-- Analyse plot-summary terms associated with high- and low-rated movies.
-- Build topic models from movie overviews.
-- Compare topic prevalence by year and genre.
-- Calculate sentiment polarity and subjectivity.
-- Use text mining for interpretation rather than as the primary prediction model.
+The text-mining workflow is implemented in [`notebooks/TextMining.ipynb`](notebooks/TextMining.ipynb) and uses the `overview` field from `data/processed/tmdb_clean.csv`. It uses the same 20-vote minimum as the predictive analysis and defines a high-rated movie as one with a rating of at least 6.5. The documented run analyzed 10,078 movies, of which approximately 39% were high-rated. The workflow:
+
+1. **Preprocesses plot overviews** by lowercasing text, removing non-letter characters and stop words, and creating binary document-term matrices.
+2. **Identifies rating-associated terms** by comparing the share of high- and low-rated movies containing each word. A chi-square test with Bonferroni correction is used for significance, and the phi coefficient measures effect size. The run tested 2,000 terms and identified 19 significant terms.
+3. **Explores word usage** with rating- and genre-level word clouds and bigram frequencies. Examples of common bigrams include `high school`, `best friend`, and `small town`.
+4. **Builds an LDA topic model** after scanning 4, 6, 8, 10, and 12 topics. The four-topic solution had the highest mean NPMI coherence (0.0338). The topics were interpreted as:
+   - **Youth, war and journeys**
+   - **Love and family**
+   - **Work, power and adult life**
+   - **Crime and murder**
+5. **Compares topics with movie performance and context.** Topic-level ratings differ significantly (Kruskal-Wallis `p = 8.55e-25`), as do high-rated shares (chi-square `p = 1.56e-21`). Topic prevalence is also tracked by genre and release year.
+6. **Measures overview sentiment** with TextBlob polarity (`-1` to `+1`) and subjectivity (`0` to `1`). Polarity has only a weak positive relationship with rating (Spearman `r = 0.083`), while subjectivity has a very weak negative relationship (`r = -0.035`). These scores describe the tone of the plot description, not audience opinion.
+
+The text features are used primarily for interpretation and dashboard exploration. They are not treated as causal evidence, and the separate TF-IDF modelling experiment did not improve the main structured-data prediction model.
+
+#### Text-mining outputs
+
+The notebook exports dashboard-ready results to `data/text/`:
+
+| File | Contents |
+|---|---|
+| `text_mining_summary.csv` | Key counts, topic-selection statistics, and association/sentiment test results |
+| `text_movie_level.csv` | Movie-level cleaned text, dominant topic, topic confidence, and sentiment features |
+| `terms_association.csv` | Word shares, chi-square statistics, p-values, phi effect sizes, and rating direction |
+| `bigrams.csv` | Bigram frequency and high-/low-rating shares |
+| `topics_summary.csv` | Topic names, top words, movie counts, ratings, high-rated shares, and coherence |
+| `topic_coherence_scan.csv` | Coherence values for each candidate topic count |
+| `topic_by_genre.csv` / `topic_by_year.csv` | Topic prevalence by genre and release year |
+| `genre_top_words.csv` | Most common overview terms by genre |
+| `sentiment_by_rating.csv` / `sentiment_by_genre.csv` / `sentiment_by_year.csv` | Polarity and subjectivity summaries |
+| `lda_topic_model.pkl` | Saved fitted LDA model |
+
+Related figures are saved under `data/processed/`, including `differential_terms.png`, `differential_bigrams.png`, `wordclouds_rating.png`, `wordclouds_genre.png`, `topic_coherence.png`, `topic_vs_rating.png`, `topic_genre_heatmap.png`, `sentiment_analysis.png`, and `sentiment_trends.png`.
 
 ## Repository structure
 
@@ -167,9 +195,10 @@ BA-Project/
 ├── notebooks/
 │   ├── EDA.ipynb
 │   ├── Feature_Engineering.ipynb
-│   └── Text_Mining.ipynb
+│   ├── TextMining.ipynb             # Text-mining workflow
+│   ├── Text_Mining.ipynb            # Alternate text-mining notebook
+│   └── Text_Mining_Revised.ipynb    # Revised text-mining workflow
 ├── notebook.ipynb                     # Main analysis notebook
-├── TextMining.ipynb          # Revised text-mining workflow
 ├── TimeSeries.ipynb                   # Time-series workflow
 ├── DATA_DICTIONARY.md
 ├── Data Documentation Report.docx
@@ -189,7 +218,7 @@ Install the core packages used by the notebooks and dashboard:
 ```bash
 pip install pandas numpy requests python-dotenv matplotlib seaborn \
     scikit-learn xgboost scipy joblib tabulate statsmodels jupyter \
-    streamlit plotly textblob
+    streamlit plotly textblob wordcloud
 ```
 
 If the repository contains a dependency manifest in your local branch, install from it instead:
@@ -224,7 +253,7 @@ Run the notebooks in the following order when rebuilding the analysis:
 2. `notebooks/Feature_Engineering.ipynb`
 3. `notebook.ipynb`
 4. `TimeSeries.ipynb`
-5. `TextMining.ipynb`
+5. `notebooks/TextMining.ipynb`
 
 Notebook names and execution order may vary depending on the current analysis branch. The dashboard expects its source CSV outputs to be present under `data/processed`, `data/ts`, and `data/text`.
 
