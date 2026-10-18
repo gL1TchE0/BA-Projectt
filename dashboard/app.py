@@ -96,15 +96,55 @@ st.markdown(
         margin-bottom: 1.4rem;
     }
 
+    /* Hide Streamlit Deploy button */
+    .stAppDeployButton,
+    [data-testid="stAppDeployButton"],
+    .stDeployButton,
+    [data-testid="stDeployButton"] {
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        width: 0 !important;
+        height: 0 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        overflow: hidden !important;
+        pointer-events: none !important;
+    }
+
     [data-testid="stMetric"] {
         background: var(--surface);
         border: 1px solid var(--line);
-        border-radius: 16px;
-        padding: 1.05rem 1.15rem;
-        box-shadow: 0 8px 24px rgba(25, 59, 99, 0.06);
+        border-radius: 14px;
+        padding: 0.85rem 0.95rem;
+        box-shadow: 0 6px 18px rgba(25, 59, 99, 0.05);
+        min-width: 0 !important;
     }
-    [data-testid="stMetricLabel"] { color: var(--muted); font-size: 0.78rem; font-weight: 600; }
-    [data-testid="stMetricValue"] { color: var(--navy); font-size: 1.65rem; }
+    [data-testid="stMetricLabel"] {
+        color: var(--muted);
+        font-size: 0.76rem !important;
+        font-weight: 600;
+        white-space: normal !important;
+    }
+    [data-testid="stMetricLabel"] > div,
+    [data-testid="stMetricLabel"] label,
+    [data-testid="stMetricLabel"] p {
+        white-space: normal !important;
+        overflow: visible !important;
+        text-overflow: unset !important;
+        word-break: break-word !important;
+        line-height: 1.25 !important;
+    }
+    [data-testid="stMetricValue"] {
+        color: var(--navy);
+        font-size: 1.45rem !important;
+        line-height: 1.2 !important;
+    }
+    [data-testid="stMetricValue"] > div {
+        white-space: nowrap !important;
+        overflow: visible !important;
+        text-overflow: unset !important;
+    }
 
     [data-baseweb="tab-list"] {
         gap: 0.45rem;
@@ -422,9 +462,9 @@ with tabs[0]:
         k[1].metric("Average rating", f"{f['vote_average'].mean():.2f}")
         k[2].metric("High-rated share", f"{f['high_rated'].mean():.0%}",
                     help="Percentage of movies with vote_average ≥ 6.5 (reliable titles with 20+ votes).")
-        k[3].metric("Average popularity", f"{f['popularity'].mean():.2f}",
+        k[3].metric("Avg popularity", f"{f['popularity'].mean():.2f}",
                     help="TMDB activity score based on daily views, searches, and user watchlist additions.")
-        k[4].metric("Years covered", f"{f['release_year'].min()} to {f['release_year'].max()}")
+        k[4].metric("Years covered", f"{f['release_year'].min()}–{f['release_year'].max()}")
         g = f.explode("genres")
         gs = g.groupby("genres").agg(movies=("id", "size"), rating=("vote_average", "mean")).reset_index()
         ya = f.groupby("release_year")["vote_average"].mean().reset_index()
