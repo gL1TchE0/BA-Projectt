@@ -196,8 +196,6 @@ BA-Project/
 │   ├── EDA.ipynb
 │   ├── Feature_Engineering.ipynb
 │   ├── TextMining.ipynb              # Text-mining workflow
-│   ├── Text_Mining.ipynb             # Alternate text-mining notebook
-│   ├── Text_Mining_Revised.ipynb     # Revised text-mining workflow
 │   └── TimeSeries.ipynb              # Time-series workflow
 ├── notebook.ipynb                     # Main analysis notebook
 ├── DATA_DICTIONARY.md
