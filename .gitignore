@@ -59,3 +59,9 @@ htmlcov/
 claude/
 .claude/
 .gemini/
+
+# Presentations, Scripts & Docs
+*presentation*
+*.pptx
+*.docx
+

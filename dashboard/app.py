@@ -1,4 +1,4 @@
-"""TMDB Movie Analytics dashboard (Review 2).
+"""TMDB Movie Analytics dashboard.
 Run from the repo root:  streamlit run dashboard/app.py
 Reads the CSV files created by the notebooks (data/processed, data/ts, data/text).
 
@@ -276,6 +276,115 @@ st.markdown(
         margin: 0.15rem 0.25rem 0.15rem 0;
         letter-spacing: 0.02em;
     }
+    
+    /* --- Website & Presentation Styling --- */
+    .hero-badge-container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-bottom: 0.4rem;
+    }
+    .web-card {
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 1.15rem 1.25rem;
+        box-shadow: 0 4px 16px rgba(25, 59, 99, 0.045);
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+    .web-card h4 {
+        margin: 0 0 0.5rem 0 !important;
+        font-size: 1.05rem !important;
+        color: var(--navy);
+        display: flex;
+        align-items: center;
+        gap: 0.45rem;
+    }
+    .web-card p {
+        font-size: 0.92rem;
+        line-height: 1.55;
+        color: var(--muted);
+        margin: 0;
+    }
+    .scorecard-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 0.8rem 0;
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        overflow: hidden;
+    }
+    .scorecard-table th {
+        text-align: left;
+        padding: 0.75rem 0.9rem;
+        background: var(--sky);
+        color: var(--navy);
+        font-size: 0.82rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        border-bottom: 2px solid var(--line);
+    }
+    .scorecard-table td {
+        padding: 0.75rem 0.9rem;
+        border-bottom: 1px solid var(--line);
+        font-size: 0.88rem;
+        color: var(--ink);
+    }
+    .scorecard-table tr:last-child td {
+        border-bottom: none;
+    }
+    .scorecard-table tr:hover {
+        background: rgba(255, 255, 255, 0.02);
+    }
+    .tag-pass {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        background: rgba(46, 158, 107, 0.15);
+        color: #4ade80;
+        border: 1px solid rgba(46, 158, 107, 0.35);
+        border-radius: 999px;
+        padding: 0.2rem 0.65rem;
+        font-size: 0.74rem;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+    .team-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(215px, 1fr));
+        gap: 0.75rem;
+        margin-top: 0.85rem;
+    }
+    .team-item {
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 0.85rem 1rem;
+        border-top: 3px solid #72b7e8;
+    }
+    .team-name {
+        font-weight: 700;
+        font-size: 0.93rem;
+        color: var(--ink);
+        margin-bottom: 0.15rem;
+    }
+    .team-id {
+        font-size: 0.76rem;
+        color: #f28e2b;
+        font-weight: 600;
+        margin-bottom: 0.35rem;
+    }
+    .team-role {
+        font-size: 0.8rem;
+        color: var(--muted);
+        line-height: 1.4;
+    }
+
     </style>
     """.replace("__INK__", theme_values["ink"])
     .replace("__MUTED__", theme_values["muted"])
@@ -359,6 +468,7 @@ def show(fig):
             bgcolor=theme_values["surface"],
             bordercolor=theme_values["line"],
             borderwidth=1,
+            font=dict(color=theme_values["ink"]),
         ),
     )
     fig.update_xaxes(showgrid=True, gridcolor=theme_values["line"], zeroline=False)
@@ -450,10 +560,120 @@ st.sidebar.caption("Filters apply to the Overview, EDA and Text mining tabs. Tim
 
 f = filt(clean, *yr, gsel, lsel, minv) if clean is not None else None
 ft = filt(text, *yr, gsel, lsel, max(minv, 20)) if text is not None else None
-tabs = st.tabs(["Overview", "EDA", "Time series", "Text mining", "Predict a movie", "Insights"])
+tabs = st.tabs(["Project & Data", "Overview", "EDA", "Predict a movie", "Time series", "Text mining", "Insights & Roadmap"])
+
+# ================= 0. Project & Data =================
+with tabs[0]:
+    st.subheader("📌 Project Overview & Business Problem")
+    st.caption("Executive context, analytical objectives, and decision framework for movie performance analysis.")
+
+    bcol1, bcol2, bcol3 = st.columns(3)
+    with bcol1:
+        st.markdown(
+            """
+            <div class="web-card">
+                <h4>🎯 The Business Problem</h4>
+                <p>Studios, production companies, and streaming platforms face high capital risk when deciding which titles to greenlight, acquire, or promote. Audience reception varies widely across genres, languages, and time periods, with little certainty on pre-release returns.</p>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+    with bcol2:
+        st.markdown(
+            """
+            <div class="web-card">
+                <h4>🚀 Core Objectives</h4>
+                <p><strong>1. Binary Classification:</strong> Predict high-rated titles (rating ≥ 6.5) with target AUC > 0.75 using pre-release metadata.<br>
+                <strong>2. Time-Series Dynamics:</strong> Forecast macro rating stability and track shifting genre shares.<br>
+                <strong>3. NLP Plot Mining:</strong> Extract high-rated story themes and wording patterns.</p>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+    with bcol3:
+        st.markdown(
+            """
+            <div class="web-card">
+                <h4>💡 Decision Impact</h4>
+                <p><strong>Concept Screening:</strong> Prioritise pitch decks using data-driven signals.<br>
+                <strong>Portfolio Allocation:</strong> Balance genre exposure against expanding vs saturated market segments.<br>
+                <strong>Post-Release Tracking:</strong> Rapidly update rating expectations once early audience engagement surfaces.</p>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
+    st.markdown('<hr class="tm-divider" style="margin:1.8rem 0 1.2rem;">', unsafe_allow_html=True)
+    st.subheader("📊 Dataset Architecture & Collection Pipeline")
+    st.caption("Data was harvested directly from the TMDB API v3 (/discover/movie, /genre/movie/list) across release years 2000 to 2025. No pre-built dataset was used.")
+
+    p1, p2, p3, p4 = st.columns(4)
+    p1.metric("Raw Harvested", "15,555", help="30 random pages per year fetched directly from TMDB API v3.")
+    p2.metric("Cleaned / Dropped", "169", help="105 blank summaries + 64 invalid/empty genre records.")
+    p3.metric("Verified Clean", "15,386", help="Clean master records covering 2000–2025 with 0 missing values.")
+    p4.metric("Core Modeling Set", "10,078", help="Reliable titles with 20+ votes used for machine learning and NLP.")
+
+    st.markdown('<hr class="tm-divider" style="margin:1.8rem 0 1.2rem;">', unsafe_allow_html=True)
+    st.subheader("🛡️ Data Validation & Preprocessing Scorecard")
+    st.caption("Comprehensive data audit confirming cleanliness, consistency, and feature readiness before modeling.")
+
+    scorecard_html = """
+    <table class="scorecard-table">
+        <thead>
+            <tr>
+                <th style="width:22%;">Audit Dimension</th>
+                <th style="width:33%;">Finding / Raw State</th>
+                <th style="width:32%;">Action Taken / Engineering</th>
+                <th style="width:13%;">Validation</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>Missing Values & Duplicates</strong></td>
+                <td>0 null values in core numeric fields; 0 duplicate TMDB IDs; 105 blank overview texts.</td>
+                <td>Dropped 105 rows with empty overviews. Final dataset has 0 missing values across all 11 variables.</td>
+                <td><span class="tag-pass">✓ 0 NaN / Dups</span></td>
+            </tr>
+            <tr>
+                <td><strong>Data Types & Integrity</strong></td>
+                <td>Genres provided as JSON-like ID lists; release dates formatted as strings; 64 invalid rows.</td>
+                <td>Parsed dates to datetime; mapped genre IDs to names; bounded ratings within [0, 10]; purged 64 invalid rows.</td>
+                <td><span class="tag-pass">✓ Schema Valid</span></td>
+            </tr>
+            <tr>
+                <td><strong>Outlier Strategy</strong></td>
+                <td>Extreme values in popularity (up to 88.5) and vote count (up to 34,700).</td>
+                <td>Retained real blockbusters (authentic market distribution); applied log transformations (log_popularity, log_votes).</td>
+                <td><span class="tag-pass">✓ Log-Scaled</span></td>
+            </tr>
+            <tr>
+                <td><strong>Categorical Encoding</strong></td>
+                <td>19 movie genres (multi-label) and 89 distinct original languages.</td>
+                <td>Multi-hot binary encoding for 19 genres; one-hot encoding for top-10 languages + "Other".</td>
+                <td><span class="tag-pass">✓ One-Hot Enc</span></td>
+            </tr>
+            <tr>
+                <td><strong>Noise Threshold & Target</strong></td>
+                <td>Small-sample ratings (< 20 votes) exhibit heavy variance and artificial 10.0 ratings.</td>
+                <td>Set 20-vote minimum cutoff. Defined high_rated target as vote_average ≥ 6.5 (39% positive class).</td>
+                <td><span class="tag-pass">✓ Balanced (39%)</span></td>
+            </tr>
+        </tbody>
+    </table>
+    """
+    st.markdown(scorecard_html, unsafe_allow_html=True)
+
+    with st.expander("🔍 Inspect sample records from the clean master catalogue"):
+        if clean is not None:
+            preview_df = clean[["title", "release_year", "original_language", "vote_average", "vote_count", "popularity", "genres"]].head(50)
+            st.dataframe(preview_df, use_container_width=True, hide_index=True)
+            st.caption("Showing 50 sample titles from data/processed/tmdb_clean.csv (15,386 total titles).")
+
+    
+
 
 # ================= 1. Overview =================
-with tabs[0]:
+with tabs[1]:
     if not need(clean, "data/processed/tmdb_clean.csv", "Review1_TMDB_Final.ipynb"): pass
     elif f.empty: st.warning("No movies match the current filters.")
     else:
@@ -484,8 +704,9 @@ with tabs[0]:
             st.caption(f"Ratings are centred near {f['vote_average'].median():.1f}; {f['high_rated'].mean():.0%} of the selected "
                        f"movies are rated {HIGH} or more.")
 
+
 # ================= 2. EDA =================
-with tabs[1]:
+with tabs[2]:
     if not need(clean, "data/processed/tmdb_clean.csv", "Review1_TMDB_Final.ipynb"): pass
     elif f.empty: st.warning("No movies match the current filters.")
     else:
@@ -524,8 +745,104 @@ with tabs[1]:
             st.caption(f"Spearman correlation with rating: popularity {r.loc['vote_average', 'popularity']:.2f}, "
                        f"vote count {r.loc['vote_average', 'vote_count']:.2f}. Both are weak.")
 
-# ================= 3. Time series =================
-with tabs[2]:
+
+# ================= 3. Predict a movie =================
+with tabs[3]:
+    st.subheader("🎬 Pre-Release Movie Success Predictor")
+    st.caption("Estimate the likelihood of high audience ratings (≥ 6.5) for a movie concept before production using the trained Random Forest classifier.")
+
+    pcol1, pcol2 = st.columns(2)
+    with pcol1:
+        sim_genres = st.multiselect(
+            "Select Genre(s)",
+            [
+                "Action", "Adventure", "Animation", "Comedy", "Crime", "Documentary",
+                "Drama", "Family", "Fantasy", "History", "Horror", "Music", "Mystery",
+                "Romance", "Science Fiction", "TV Movie", "Thriller", "War", "Western"
+            ],
+            default=["Animation", "Adventure"]
+        )
+        sim_lang = st.selectbox(
+            "Original Language",
+            ["English", "Japanese", "French", "Spanish", "German", "Italian", "Korean", "Hindi", "Russian", "Chinese", "Other"],
+            index=0
+        )
+    with pcol2:
+        sim_year = st.slider("Target Release Year", 2000, 2030, 2025)
+        sim_month = st.selectbox("Target Release Month", list(range(1, 13)), format_func=lambda m: MONTHS[m - 1], index=10)
+        sim_words = st.slider("Synopsis Length (word count)", 10, 150, 50)
+
+    model_path = ROOT / "models" / "RandForest_A.pkl"
+    if model_path.exists():
+        import joblib
+        try:
+            rf_model = joblib.load(model_path)
+            feats = rf_model.feature_names_in_
+            row = pd.DataFrame([{f: 0 for f in feats}])
+            row["release_year"] = sim_year
+            row["month"] = sim_month
+            row["ov_words"] = sim_words
+            row["n_genres"] = len(sim_genres)
+            for g in sim_genres:
+                g_col = f"g_{g}"
+                if g_col in row.columns:
+                    row[g_col] = 1
+            lang_map = {
+                "English": "l_en", "Japanese": "l_ja", "French": "l_fr", "Spanish": "l_es",
+                "German": "l_de", "Italian": "l_it", "Korean": "l_ko", "Hindi": "l_hi",
+                "Russian": "l_ru", "Chinese": "l_zh", "Other": "l_other"
+            }
+            l_col = lang_map.get(sim_lang, "l_other")
+            if l_col in row.columns:
+                row[l_col] = 1
+
+            if not sim_genres:
+                st.warning("⚠️ Please select at least one genre to get a prediction.")
+            else:
+                prob = rf_model.predict_proba(row)[0, 1]
+                is_high = prob >= 0.5
+                badge_color = "#2e9e6b" if is_high else "#d1495b"
+                badge_title = "HIGH-RATED (≥ 6.5)" if is_high else "NOT HIGH-RATED (< 6.5)"
+
+                st.markdown(
+                    f'''
+                    <div style="background:var(--surface); border:1px solid var(--line); border-left:5px solid {badge_color}; border-radius:12px; padding:1.1rem 1.3rem; margin-top:0.8rem;">
+                        <span style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.08em; font-weight:700; color:{badge_color};">ML Classification Output</span>
+                        <h3 style="margin:0.2rem 0 0.4rem; color:var(--ink);">{badge_title} · {prob:.1%} Probability</h3>
+                        <p style="margin:0; font-size:0.92rem; color:var(--muted); line-height:1.5;">
+                            Evaluated using pre-release metadata ({len(sim_genres)} genre(s), {sim_lang} language, {MONTHS[sim_month-1]} {sim_year} release).
+                            {"This concept aligns with characteristics of historically well-received titles." if is_high else "This concept faces higher odds of receiving average or polarized reviews based on historical benchmarks."}
+                        </p>
+                    </div>
+                    ''',
+                    unsafe_allow_html=True
+                )
+        except Exception as e:
+            st.caption(f"Simulator error: {e}")
+
+    st.markdown('<hr class="tm-divider" style="margin:2rem 0 1.2rem;">', unsafe_allow_html=True)
+    st.subheader("Model Performance & Benchmarks")
+    st.caption(f"Target: rating of {HIGH} or more, for movies with 20 or more votes (10,078 movies, 39% high-rated). "
+               "Stratified 80/20 split: 8,062 training and 2,016 test movies. Evaluated on the held-out test set.")
+    table(METRICS.style.format({c: "{:.3f}" for c in METRICS.columns[1:]}))
+
+    st.markdown("**Robustness:** with at least 50 votes (5,717 movies) the AUC is 0.841, so the results do not depend on the 20-vote cut-off.")
+    st.info("Set B uses popularity and votes (known only after release), while Set A is the pre-release version used in the predictor above. "
+            "Feature importance reflects what the model relies on, not direct cause and effect.")
+
+    with more("cross-validation AUC before and after tuning"):
+        table(CV)
+
+    with more("top 15 features for set A and set B"):
+        for name, imp, colr in [("Set B (with popularity and votes)", IMP_B, BLUE), ("Set A (content only)", IMP_A, ORANGE)]:
+            d = pd.Series(imp).sort_values().reset_index(); d.columns = ["feature", "importance"]
+            fig = px.bar(d, x="importance", y="feature", orientation="h", color_discrete_sequence=[colr],
+                         title=f"Top 15 features, {name}", labels={"importance": "Drop in AUC when shuffled", "feature": ""})
+            show(fig)
+
+
+# ================= 4. Time series =================
+with tabs[4]:
     ms, fo = read("ts/monthly_series.csv", ["month"]), read("ts/forecast.csv", ["month"])
     mc, se = read("ts/model_comparison.csv"), read("ts/seasonality.csv")
     gc = read("ts/genre_share_change.csv")
@@ -565,7 +882,7 @@ with tabs[2]:
                        "months. The band is wide, so read the forecast as 'about the same level', not a precise number.")
         if need(mc, "data/ts/model_comparison.csv", nb):
             st.markdown("**Model comparison on the held-out months** (lower error is better; best row highlighted)")
-            sty = mc.style.highlight_min(subset=["RMSE"], color="#c8e6c9").format(
+            sty = mc.style.highlight_min(subset=["RMSE"], color="rgba(46, 158, 107, 0.3)").format(
                 {c: "{:.4f}" for c in ["MAE", "RMSE"]} | ({"RMSE vs naive (%)": "{:+.1f}"} if "RMSE vs naive (%)" in mc else {}))
             table(sty)
             best = mc.loc[mc["RMSE"].idxmin(), "model"]
@@ -591,8 +908,9 @@ with tabs[2]:
                            f"Biggest fall: {gc.loc[gc[cc].idxmin(), 'genre']} ({gc[cc].min():+.1f} pp), "
                            "first five years vs last five modelled years.")
 
-# ================= 4. Text mining =================
-with tabs[3]:
+
+# ================= 5. Text mining =================
+with tabs[5]:
     nb = "TextMining.ipynb"
     if not need(text, "data/text/text_movie_level.csv", nb): pass
     elif ft.empty: st.warning("No movies match the current filters (text mining uses movies with 20 or more votes).")
@@ -649,7 +967,116 @@ with tabs[3]:
             border: none; border-top: 1px solid var(--line);
             margin: 1.2rem 0;
         }
-        </style>
+        
+    /* --- Website & Presentation Styling --- */
+    .hero-badge-container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-bottom: 0.4rem;
+    }
+    .web-card {
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 1.15rem 1.25rem;
+        box-shadow: 0 4px 16px rgba(25, 59, 99, 0.045);
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+    .web-card h4 {
+        margin: 0 0 0.5rem 0 !important;
+        font-size: 1.05rem !important;
+        color: var(--navy);
+        display: flex;
+        align-items: center;
+        gap: 0.45rem;
+    }
+    .web-card p {
+        font-size: 0.92rem;
+        line-height: 1.55;
+        color: var(--muted);
+        margin: 0;
+    }
+    .scorecard-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 0.8rem 0;
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        overflow: hidden;
+    }
+    .scorecard-table th {
+        text-align: left;
+        padding: 0.75rem 0.9rem;
+        background: var(--sky);
+        color: var(--navy);
+        font-size: 0.82rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        border-bottom: 2px solid var(--line);
+    }
+    .scorecard-table td {
+        padding: 0.75rem 0.9rem;
+        border-bottom: 1px solid var(--line);
+        font-size: 0.88rem;
+        color: var(--ink);
+    }
+    .scorecard-table tr:last-child td {
+        border-bottom: none;
+    }
+    .scorecard-table tr:hover {
+        background: rgba(255, 255, 255, 0.02);
+    }
+    .tag-pass {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        background: rgba(46, 158, 107, 0.15);
+        color: #4ade80;
+        border: 1px solid rgba(46, 158, 107, 0.35);
+        border-radius: 999px;
+        padding: 0.2rem 0.65rem;
+        font-size: 0.74rem;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+    .team-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(215px, 1fr));
+        gap: 0.75rem;
+        margin-top: 0.85rem;
+    }
+    .team-item {
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 0.85rem 1rem;
+        border-top: 3px solid #72b7e8;
+    }
+    .team-name {
+        font-weight: 700;
+        font-size: 0.93rem;
+        color: var(--ink);
+        margin-bottom: 0.15rem;
+    }
+    .team-id {
+        font-size: 0.76rem;
+        color: #f28e2b;
+        font-weight: 600;
+        margin-bottom: 0.35rem;
+    }
+    .team-role {
+        font-size: 0.8rem;
+        color: var(--muted);
+        line-height: 1.4;
+    }
+
+    </style>
         """, unsafe_allow_html=True)
 
         # ---- KPI row ----
@@ -797,99 +1224,9 @@ with tabs[3]:
         table(ex.head(300).round(3))
         st.download_button("📥 Download the filtered movies (CSV)", ex.to_csv(index=False).encode("utf-8"), "filtered_movies.csv", "text/csv")
 
-# ================= 5. Predict a movie =================
-with tabs[4]:
-    st.subheader("🎬 Pre-Release Movie Success Predictor")
-    st.caption("Estimate the likelihood of high audience ratings (≥ 6.5) for a movie concept before production using the trained Random Forest classifier.")
 
-    pcol1, pcol2 = st.columns(2)
-    with pcol1:
-        sim_genres = st.multiselect(
-            "Select Genre(s)",
-            [
-                "Action", "Adventure", "Animation", "Comedy", "Crime", "Documentary",
-                "Drama", "Family", "Fantasy", "History", "Horror", "Music", "Mystery",
-                "Romance", "Science Fiction", "TV Movie", "Thriller", "War", "Western"
-            ],
-            default=["Animation", "Adventure"]
-        )
-        sim_lang = st.selectbox(
-            "Original Language",
-            ["English", "Japanese", "French", "Spanish", "German", "Italian", "Korean", "Hindi", "Russian", "Chinese", "Other"],
-            index=0
-        )
-    with pcol2:
-        sim_year = st.slider("Target Release Year", 2000, 2030, 2025)
-        sim_month = st.selectbox("Target Release Month", list(range(1, 13)), format_func=lambda m: MONTHS[m - 1], index=10)
-        sim_words = st.slider("Synopsis Length (word count)", 10, 150, 50)
-
-    model_path = ROOT / "models" / "RandForest_A.pkl"
-    if model_path.exists():
-        import joblib
-        try:
-            rf_model = joblib.load(model_path)
-            feats = rf_model.feature_names_in_
-            row = pd.DataFrame([{f: 0 for f in feats}])
-            row["release_year"] = sim_year
-            row["month"] = sim_month
-            row["ov_words"] = sim_words
-            row["n_genres"] = len(sim_genres)
-            for g in sim_genres:
-                g_col = f"g_{g}"
-                if g_col in row.columns:
-                    row[g_col] = 1
-            lang_map = {
-                "English": "l_en", "Japanese": "l_ja", "French": "l_fr", "Spanish": "l_es",
-                "German": "l_de", "Italian": "l_it", "Korean": "l_ko", "Hindi": "l_hi",
-                "Russian": "l_ru", "Chinese": "l_zh", "Other": "l_other"
-            }
-            l_col = lang_map.get(sim_lang, "l_other")
-            if l_col in row.columns:
-                row[l_col] = 1
-
-            prob = rf_model.predict_proba(row)[0, 1]
-            is_high = prob >= 0.5
-            badge_color = "#2e9e6b" if is_high else "#d1495b"
-            badge_title = "HIGH-RATED (≥ 6.5)" if is_high else "NOT HIGH-RATED (< 6.5)"
-
-            st.markdown(
-                f'''
-                <div style="background:var(--surface); border:1px solid var(--line); border-left:5px solid {badge_color}; border-radius:12px; padding:1.1rem 1.3rem; margin-top:0.8rem;">
-                    <span style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.08em; font-weight:700; color:{badge_color};">ML Classification Output</span>
-                    <h3 style="margin:0.2rem 0 0.4rem; color:var(--ink);">{badge_title} · {prob:.1%} Probability</h3>
-                    <p style="margin:0; font-size:0.92rem; color:var(--muted); line-height:1.5;">
-                        Evaluated using pre-release metadata ({len(sim_genres)} genre(s), {sim_lang} language, {MONTHS[sim_month-1]} {sim_year} release).
-                        {"This concept aligns with characteristics of historically well-received titles." if is_high else "This concept faces higher odds of receiving average or polarized reviews based on historical benchmarks."}
-                    </p>
-                </div>
-                ''',
-                unsafe_allow_html=True
-            )
-        except Exception as e:
-            st.caption(f"Simulator error: {e}")
-
-    st.markdown('<hr class="tm-divider" style="margin:2rem 0 1.2rem;">', unsafe_allow_html=True)
-    st.subheader("Model Performance & Benchmarks")
-    st.caption(f"Target: rating of {HIGH} or more, for movies with 20 or more votes (10,078 movies, 39% high-rated). "
-               "Stratified 80/20 split: 8,062 training and 2,016 test movies. Evaluated on the held-out test set.")
-    table(METRICS.style.format({c: "{:.3f}" for c in METRICS.columns[1:]}))
-
-    st.markdown("**Robustness:** with at least 50 votes (5,717 movies) the AUC is 0.841, so the results do not depend on the 20-vote cut-off.")
-    st.info("Set B uses popularity and votes (known only after release), while Set A is the pre-release version used in the predictor above. "
-            "Feature importance reflects what the model relies on, not direct cause and effect.")
-
-    with more("cross-validation AUC before and after tuning"):
-        table(CV)
-
-    with more("top 15 features for set A and set B"):
-        for name, imp, colr in [("Set B (with popularity and votes)", IMP_B, BLUE), ("Set A (content only)", IMP_A, ORANGE)]:
-            d = pd.Series(imp).sort_values().reset_index(); d.columns = ["feature", "importance"]
-            fig = px.bar(d, x="importance", y="feature", orientation="h", color_discrete_sequence=[colr],
-                         title=f"Top 15 features, {name}", labels={"importance": "Drop in AUC when shuffled", "feature": ""})
-            show(fig)
-
-# ================= 6. Insights =================
-with tabs[5]:
+# ================= 6. Insights & Roadmap =================
+with tabs[6]:
     st.subheader("The big picture, in plain English")
     st.caption("These are practical takeaways from the movie data. They describe patterns, not guarantees.")
     for i, (h, t) in enumerate(RECS):
@@ -931,3 +1268,80 @@ with tabs[5]:
                     unsafe_allow_html=True,
                 )
     st.caption("Findings are associations in a sample of TMDB movies, not proof of cause.")
+
+    st.markdown('<hr class="tm-divider" style="margin:2.5rem 0 1.5rem;">', unsafe_allow_html=True)
+    st.subheader("🏁 Project Conclusions, Limitations & Future Scope")
+    st.caption("Synthesis of analytical results, boundary conditions, and technical next steps.")
+
+    ccol1, ccol2, ccol3 = st.columns(3)
+    with ccol1:
+        st.markdown(
+            """
+            <div class="web-card">
+                <h4>🏆 Core Conclusions</h4>
+                <p><strong>1. Genre Dominance:</strong> Genre is the single strongest pre-release signal (Documentary and Animation lead; Horror trails).<br>
+                <strong>2. Plateaued Ratings:</strong> Historical ratings rose from 6.06 to 6.3 in 2020 and have stabilized; forecasting indicates stability rather than further growth.<br>
+                <strong>3. Plot Vocabulary:</strong> Factual plot terminology links to higher ratings, whereas formulaic tropes correlate with lower reception.<br>
+                <strong>4. Machine Learning:</strong> Content features alone classify high-rated titles with AUC 0.785, proving strong screening utility.</p>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+    with ccol2:
+        st.markdown(
+            """
+            <div class="web-card">
+                <h4>⚠️ Methodological Limitations</h4>
+                <p><strong>1. API Sample Scope:</strong> ~600 movies per release year; represents a sample rather than complete global film census.<br>
+                <strong>2. Vote Maturation Lag:</strong> Recent 12 months excluded from time-series modeling due to immature vote counts.<br>
+                <strong>3. TextBlob Sentiment:</strong> Polarity measures plot synopsis tone, not actual audience emotional sentiment.<br>
+                <strong>4. Recall Ceiling:</strong> Set A content model recall is 0.527, meaning 47% of high-rated films are missed if judged purely on metadata.</p>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+    with ccol3:
+        st.markdown(
+            """
+            <div class="web-card">
+                <h4>🔮 Future Engineering Scope</h4>
+                <p><strong>1. Financial Integration:</strong> Ingest production budget, marketing spend, and box office revenue data.<br>
+                <strong>2. Cast & Crew Influence:</strong> Incorporate director and lead cast historical track-record weights.<br>
+                <strong>3. Advanced NLP:</strong> Replace TextBlob with transformer embeddings (Sentence-BERT / RoBERTa) and lemmatized keyphrases.<br>
+                <strong>4. Production Pipeline:</strong> Automate periodic TMDB API ingestion with cloud-hosted Streamlit deployment.</p>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
+    st.markdown('<div style="margin-top:2.2rem;"></div>', unsafe_allow_html=True)
+    with st.expander("ℹ️ Project details & contributors"):
+        st.caption("Course: 23CSE452 Business Analytics · Faculty Guide: Prof. Rohini S")
+        st.markdown(
+            """
+            <div style="display:flex; flex-wrap:wrap; gap:0.65rem; margin-top:0.4rem;">
+                <div style="background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:0.5rem 0.85rem;">
+                    <strong style="color:var(--ink); font-size:0.88rem;">Soundarya Satalgoan</strong>
+                    <span style="color:var(--muted); font-size:0.78rem; margin-left:0.35rem;">CB.SC.U4CSE23447</span>
+                </div>
+                <div style="background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:0.5rem 0.85rem;">
+                    <strong style="color:var(--ink); font-size:0.88rem;">Balaji N</strong>
+                    <span style="color:var(--muted); font-size:0.78rem; margin-left:0.35rem;">CB.SC.U4CSE23011</span>
+                </div>
+                <div style="background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:0.5rem 0.85rem;">
+                    <strong style="color:var(--ink); font-size:0.88rem;">Parvathy Krishna A</strong>
+                    <span style="color:var(--muted); font-size:0.78rem; margin-left:0.35rem;">CB.SC.U4CSE23739</span>
+                </div>
+                <div style="background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:0.5rem 0.85rem;">
+                    <strong style="color:var(--ink); font-size:0.88rem;">Venkata Kanna Bhavan Surya Addap</strong>
+                    <span style="color:var(--muted); font-size:0.78rem; margin-left:0.35rem;">CB.SC.U4CSE23467</span>
+                </div>
+                <div style="background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:0.5rem 0.85rem;">
+                    <strong style="color:var(--ink); font-size:0.88rem;">Dareddy Tejeswara Reddy</strong>
+                    <span style="color:var(--muted); font-size:0.78rem; margin-left:0.35rem;">CB.SC.U4CSE23614</span>
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
