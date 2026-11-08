@@ -359,6 +359,7 @@ def show(fig):
             bgcolor=theme_values["surface"],
             bordercolor=theme_values["line"],
             borderwidth=1,
+            font=dict(color=theme_values["ink"]),
         ),
     )
     fig.update_xaxes(showgrid=True, gridcolor=theme_values["line"], zeroline=False)
@@ -565,7 +566,7 @@ with tabs[2]:
                        "months. The band is wide, so read the forecast as 'about the same level', not a precise number.")
         if need(mc, "data/ts/model_comparison.csv", nb):
             st.markdown("**Model comparison on the held-out months** (lower error is better; best row highlighted)")
-            sty = mc.style.highlight_min(subset=["RMSE"], color="#c8e6c9").format(
+            sty = mc.style.highlight_min(subset=["RMSE"], color="rgba(46, 158, 107, 0.3)").format(
                 {c: "{:.4f}" for c in ["MAE", "RMSE"]} | ({"RMSE vs naive (%)": "{:+.1f}"} if "RMSE vs naive (%)" in mc else {}))
             table(sty)
             best = mc.loc[mc["RMSE"].idxmin(), "model"]
@@ -847,24 +848,27 @@ with tabs[4]:
             if l_col in row.columns:
                 row[l_col] = 1
 
-            prob = rf_model.predict_proba(row)[0, 1]
-            is_high = prob >= 0.5
-            badge_color = "#2e9e6b" if is_high else "#d1495b"
-            badge_title = "HIGH-RATED (≥ 6.5)" if is_high else "NOT HIGH-RATED (< 6.5)"
+            if not sim_genres:
+                st.warning("⚠️ Please select at least one genre to get a prediction.")
+            else:
+                prob = rf_model.predict_proba(row)[0, 1]
+                is_high = prob >= 0.5
+                badge_color = "#2e9e6b" if is_high else "#d1495b"
+                badge_title = "HIGH-RATED (≥ 6.5)" if is_high else "NOT HIGH-RATED (< 6.5)"
 
-            st.markdown(
-                f'''
-                <div style="background:var(--surface); border:1px solid var(--line); border-left:5px solid {badge_color}; border-radius:12px; padding:1.1rem 1.3rem; margin-top:0.8rem;">
-                    <span style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.08em; font-weight:700; color:{badge_color};">ML Classification Output</span>
-                    <h3 style="margin:0.2rem 0 0.4rem; color:var(--ink);">{badge_title} · {prob:.1%} Probability</h3>
-                    <p style="margin:0; font-size:0.92rem; color:var(--muted); line-height:1.5;">
-                        Evaluated using pre-release metadata ({len(sim_genres)} genre(s), {sim_lang} language, {MONTHS[sim_month-1]} {sim_year} release).
-                        {"This concept aligns with characteristics of historically well-received titles." if is_high else "This concept faces higher odds of receiving average or polarized reviews based on historical benchmarks."}
-                    </p>
-                </div>
-                ''',
-                unsafe_allow_html=True
-            )
+                st.markdown(
+                    f'''
+                    <div style="background:var(--surface); border:1px solid var(--line); border-left:5px solid {badge_color}; border-radius:12px; padding:1.1rem 1.3rem; margin-top:0.8rem;">
+                        <span style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.08em; font-weight:700; color:{badge_color};">ML Classification Output</span>
+                        <h3 style="margin:0.2rem 0 0.4rem; color:var(--ink);">{badge_title} · {prob:.1%} Probability</h3>
+                        <p style="margin:0; font-size:0.92rem; color:var(--muted); line-height:1.5;">
+                            Evaluated using pre-release metadata ({len(sim_genres)} genre(s), {sim_lang} language, {MONTHS[sim_month-1]} {sim_year} release).
+                            {"This concept aligns with characteristics of historically well-received titles." if is_high else "This concept faces higher odds of receiving average or polarized reviews based on historical benchmarks."}
+                        </p>
+                    </div>
+                    ''',
+                    unsafe_allow_html=True
+                )
         except Exception as e:
             st.caption(f"Simulator error: {e}")
 
