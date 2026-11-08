@@ -43,12 +43,12 @@ The dashboard is implemented in [`dashboard/app.py`](dashboard/app.py) and reads
 - **EDA:** genre, language, decade, rating, popularity, and correlation analysis.
 - **Time series:** monthly rating and popularity trends, rolling averages, forecasts, model comparison, seasonality, and changes in genre share.
 - **Text mining:** topic summaries, significant terms, topic trends, genre-topic relationships, sentiment analysis, and a searchable movie explorer.
-- **Model results:** test-set metrics, confusion matrix, cross-validation results, feature importance, and robustness notes.
+- **Predict a movie:** a pre-release Random Forest simulator plus test-set metrics, cross-validation results, feature importance, and robustness notes.
 - **Insights:** plain-language business recommendations, colour-coded insight cards, and live summary metrics that respond to the sidebar filters.
 
 ### Dashboard interface features
 
-- Light and dark appearance modes
+- Dark-themed appearance
 - Responsive wide layout
 - Sidebar filters for release year, genre, language, and minimum vote count
 - Interactive Plotly visualisations
@@ -130,11 +130,39 @@ See [`DATA_DICTIONARY.md`](DATA_DICTIONARY.md) for field definitions and data-qu
 
 ### 6. Text mining
 
-- Analyse plot-summary terms associated with high- and low-rated movies.
-- Build topic models from movie overviews.
-- Compare topic prevalence by year and genre.
-- Calculate sentiment polarity and subjectivity.
-- Use text mining for interpretation rather than as the primary prediction model.
+The text-mining workflow is implemented in [`notebooks/TextMining.ipynb`](notebooks/TextMining.ipynb) and uses the `overview` field from `data/processed/tmdb_clean.csv`. It uses the same 20-vote minimum as the predictive analysis and defines a high-rated movie as one with a rating of at least 6.5. The documented run analyzed 10,078 movies, of which approximately 39% were high-rated. The workflow:
+
+1. **Preprocesses plot overviews** by lowercasing text, removing non-letter characters and stop words, and creating binary document-term matrices.
+2. **Identifies rating-associated terms** by comparing the share of high- and low-rated movies containing each word. A chi-square test with Bonferroni correction is used for significance, and the phi coefficient measures effect size. The run tested 2,000 terms and identified 19 significant terms.
+3. **Explores word usage** with rating- and genre-level word clouds and bigram frequencies. Examples of common bigrams include `high school`, `best friend`, and `small town`.
+4. **Builds an LDA topic model** after scanning 4, 6, 8, 10, and 12 topics. The four-topic solution had the highest mean NPMI coherence (0.0338). The topics were interpreted as:
+   - **Youth, war and journeys**
+   - **Love and family**
+   - **Work, power and adult life**
+   - **Crime and murder**
+5. **Compares topics with movie performance and context.** Topic-level ratings differ significantly (Kruskal-Wallis `p = 8.55e-25`), as do high-rated shares (chi-square `p = 1.56e-21`). Topic prevalence is also tracked by genre and release year.
+6. **Measures overview sentiment** with TextBlob polarity (`-1` to `+1`) and subjectivity (`0` to `1`). Polarity has only a weak positive relationship with rating (Spearman `r = 0.083`), while subjectivity has a very weak negative relationship (`r = -0.035`). These scores describe the tone of the plot description, not audience opinion.
+
+The text features are used primarily for interpretation and dashboard exploration. They are not treated as causal evidence, and the separate TF-IDF modelling experiment did not improve the main structured-data prediction model.
+
+#### Text-mining outputs
+
+The repository contains dashboard-ready results in `data/text/`. The notebook computes the corresponding tables and model objects, while the checked-in files provide the inputs used by the dashboard. In the current notebook, `OUT` is configured for the original Windows workspace and there are no direct `to_csv` or model-serialization calls, so rerunning it does not automatically refresh these repository files.
+
+| File | Contents |
+|---|---|
+| `text_mining_summary.csv` | Key counts, topic-selection statistics, and association/sentiment test results |
+| `text_movie_level.csv` | Movie-level cleaned text, dominant topic, topic confidence, and sentiment features |
+| `terms_association.csv` | Word shares, chi-square statistics, p-values, phi effect sizes, and rating direction |
+| `bigrams.csv` | Bigram frequency and high-/low-rating shares |
+| `topics_summary.csv` | Topic names, top words, movie counts, ratings, high-rated shares, and coherence |
+| `topic_coherence_scan.csv` | Coherence values for each candidate topic count |
+| `topic_by_genre.csv` / `topic_by_year.csv` | Topic prevalence by genre and release year |
+| `genre_top_words.csv` | Most common overview terms by genre |
+| `sentiment_by_rating.csv` / `sentiment_by_genre.csv` / `sentiment_by_year.csv` | Polarity and subjectivity summaries |
+| `lda_topic_model.pkl` | Fitted LDA model used by the dashboard |
+
+The notebook's plotting helper saves figures to `reports/figures/text/` with names including `word_share_high_vs_low.png`, `significant_terms.png`, `wordclouds_rating.png`, `wordclouds_genre.png`, `top_bigrams.png`, `topic_coherence_scan.png`, `topic_vs_rating.png`, `topic_genre_heatmap.png`, `topic_share_by_year.png`, and `sentiment_analysis.png`. The repository also contains dashboard-oriented copies or related figures under `data/processed/`, including `differential_terms.png`, `differential_bigrams.png`, `topic_coherence.png`, and `sentiment_trends.png`.
 
 ## Repository structure
 
@@ -167,10 +195,9 @@ BA-Project/
 ├── notebooks/
 │   ├── EDA.ipynb
 │   ├── Feature_Engineering.ipynb
-│   └── Text_Mining.ipynb
+│   ├── TextMining.ipynb              # Text-mining workflow
+│   └── TimeSeries.ipynb              # Time-series workflow
 ├── notebook.ipynb                     # Main analysis notebook
-├── TextMining.ipynb          # Revised text-mining workflow
-├── TimeSeries.ipynb                   # Time-series workflow
 ├── DATA_DICTIONARY.md
 ├── Data Documentation Report.docx
 └── README.md
@@ -189,10 +216,10 @@ Install the core packages used by the notebooks and dashboard:
 ```bash
 pip install pandas numpy requests python-dotenv matplotlib seaborn \
     scikit-learn xgboost scipy joblib tabulate statsmodels jupyter \
-    streamlit plotly textblob
+    streamlit plotly textblob wordcloud
 ```
 
-If the repository contains a dependency manifest in your local branch, install from it instead:
+The current [`requirements.txt`](requirements.txt) lists the dashboard runtime dependencies. For the notebooks, also install the analysis packages shown above:
 
 ```bash
 pip install -r requirements.txt
@@ -218,15 +245,15 @@ Start Jupyter:
 jupyter notebook
 ```
 
-Run the notebooks in the following order when rebuilding the analysis:
+Run the notebooks in the following order when rebuilding the analysis from raw data:
 
-1. `notebooks/EDA.ipynb`
-2. `notebooks/Feature_Engineering.ipynb`
-3. `notebook.ipynb`
-4. `TimeSeries.ipynb`
-5. `TextMining.ipynb`
+1. `notebook.ipynb` — collect and clean the TMDB data and build the modelling dataset
+2. `notebooks/EDA.ipynb` — exploratory analysis
+3. `notebooks/Feature_Engineering.ipynb` — structured and TF-IDF features plus baseline results
+4. `notebooks/TimeSeries.ipynb` — time-series outputs
+5. `notebooks/TextMining.ipynb` or `notebooks/Text_Mining.ipynb` — text-mining analysis
 
-Notebook names and execution order may vary depending on the current analysis branch. The dashboard expects its source CSV outputs to be present under `data/processed`, `data/ts`, and `data/text`.
+`TextMining.ipynb` and `Text_Mining_Revised.ipynb` contain the focused Review 2 workflow; `Text_Mining.ipynb` is the broader text-analysis workflow that writes figures to `data/processed/`. Notebook execution order may vary depending on the current analysis branch. The dashboard expects its source CSV outputs to be present under `data/processed`, `data/ts`, and `data/text`.
 
 ### 3. Collect fresh TMDB data
 
