@@ -13,7 +13,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 import streamlit as st
 
-st.set_page_config(page_title="TMDB Movie Analytics", page_icon="🎬", layout="wide")
+st.set_page_config(page_title="TMDB Movie Analytics", layout="wide")
 
 ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "data"
@@ -444,14 +444,14 @@ IMP_A = {"Documentary": .0487, "Horror": .0376, "Animation": .0369, "release_yea
          "Thriller": .0135, "English": .0092, "Japanese": .0088, "Comedy": .0060, "Korean": .0059,
          "History": .0038, "French": .0033, "month": .0032, "overview_words": .0031, "Music": .0016}
 INSIGHT_META = [
-    ("🎬", "Choosing a movie", "#2e9e6b", "rgba(46, 158, 107, 0.14)"),
-    ("📣", "Popularity vs quality", "#f28e2b", "rgba(242, 142, 43, 0.15)"),
-    ("🔎", "Before release", "#1f80c0", "rgba(31, 128, 192, 0.14)"),
-    ("📈", "After release", "#8a63d2", "rgba(138, 99, 210, 0.14)"),
-    ("🌍", "Global audiences", "#d1495b", "rgba(209, 73, 91, 0.14)"),
-    ("🗓️", "Planning ahead", "#1f4e79", "rgba(31, 78, 121, 0.14)"),
-    ("📝", "Understanding stories", "#2e9e6b", "rgba(46, 158, 107, 0.14)"),
-    ("💡", "Next step", "#667085", "rgba(102, 112, 133, 0.14)"),
+    ("01", "Choosing a movie", "#2e9e6b", "rgba(46, 158, 107, 0.14)"),
+    ("02", "Popularity vs quality", "#f28e2b", "rgba(242, 142, 43, 0.15)"),
+    ("03", "Before release", "#1f80c0", "rgba(31, 128, 192, 0.14)"),
+    ("04", "After release", "#8a63d2", "rgba(138, 99, 210, 0.14)"),
+    ("05", "Global audiences", "#d1495b", "rgba(209, 73, 91, 0.14)"),
+    ("06", "Planning ahead", "#1f4e79", "rgba(31, 78, 121, 0.14)"),
+    ("07", "Understanding stories", "#2e9e6b", "rgba(46, 158, 107, 0.14)"),
+    ("08", "Next step", "#667085", "rgba(102, 112, 133, 0.14)"),
 ]
 
 
@@ -560,11 +560,11 @@ st.sidebar.caption("Filters apply to the Overview, EDA and Text mining tabs. Tim
 
 f = filt(clean, *yr, gsel, lsel, minv) if clean is not None else None
 ft = filt(text, *yr, gsel, lsel, max(minv, 20)) if text is not None else None
-tabs = st.tabs(["Project & Data", "Overview", "EDA", "Predict a movie", "Time series", "Text mining", "Insights & Roadmap"])
+tabs = st.tabs(["Project & Data", "Overview", "EDA", "Predict a movie", "Time series", "Text mining", "Insights"])
 
 # ================= 0. Project & Data =================
 with tabs[0]:
-    st.subheader("📌 Project Overview & Business Problem")
+    st.subheader("Project Overview & Business Problem")
     st.caption("Executive context, analytical objectives, and decision framework for movie performance analysis.")
 
     bcol1, bcol2, bcol3 = st.columns(3)
@@ -572,7 +572,7 @@ with tabs[0]:
         st.markdown(
             """
             <div class="web-card">
-                <h4>🎯 The Business Problem</h4>
+                <h4>The Business Problem</h4>
                 <p>Studios, production companies, and streaming platforms face high capital risk when deciding which titles to greenlight, acquire, or promote. Audience reception varies widely across genres, languages, and time periods, with little certainty on pre-release returns.</p>
             </div>
             """,
@@ -582,7 +582,7 @@ with tabs[0]:
         st.markdown(
             """
             <div class="web-card">
-                <h4>🚀 Core Objectives</h4>
+                <h4>Core Objectives</h4>
                 <p><strong>1. Binary Classification:</strong> Predict high-rated titles (rating ≥ 6.5) with target AUC > 0.75 using pre-release metadata.<br>
                 <strong>2. Time-Series Dynamics:</strong> Forecast macro rating stability and track shifting genre shares.<br>
                 <strong>3. NLP Plot Mining:</strong> Extract high-rated story themes and wording patterns.</p>
@@ -594,7 +594,7 @@ with tabs[0]:
         st.markdown(
             """
             <div class="web-card">
-                <h4>💡 Decision Impact</h4>
+                <h4>Decision Impact</h4>
                 <p><strong>Concept Screening:</strong> Prioritise pitch decks using data-driven signals.<br>
                 <strong>Portfolio Allocation:</strong> Balance genre exposure against expanding vs saturated market segments.<br>
                 <strong>Post-Release Tracking:</strong> Rapidly update rating expectations once early audience engagement surfaces.</p>
@@ -604,7 +604,7 @@ with tabs[0]:
         )
 
     st.markdown('<hr class="tm-divider" style="margin:1.8rem 0 1.2rem;">', unsafe_allow_html=True)
-    st.subheader("📊 Dataset Architecture & Collection Pipeline")
+    st.subheader("Dataset Architecture & Collection Pipeline")
     st.caption("Data was harvested directly from the TMDB API v3 (/discover/movie, /genre/movie/list) across release years 2000 to 2025. No pre-built dataset was used.")
 
     p1, p2, p3, p4 = st.columns(4)
@@ -614,7 +614,7 @@ with tabs[0]:
     p4.metric("Core Modeling Set", "10,078", help="Reliable titles with 20+ votes used for machine learning and NLP.")
 
     st.markdown('<hr class="tm-divider" style="margin:1.8rem 0 1.2rem;">', unsafe_allow_html=True)
-    st.subheader("🛡️ Data Validation & Preprocessing Scorecard")
+    st.subheader("Data Validation & Preprocessing Scorecard")
     st.caption("Comprehensive data audit confirming cleanliness, consistency, and feature readiness before modeling.")
 
     scorecard_html = """
@@ -632,38 +632,38 @@ with tabs[0]:
                 <td><strong>Missing Values & Duplicates</strong></td>
                 <td>0 null values in core numeric fields; 0 duplicate TMDB IDs; 105 blank overview texts.</td>
                 <td>Dropped 105 rows with empty overviews. Final dataset has 0 missing values across all 11 variables.</td>
-                <td><span class="tag-pass">✓ 0 NaN / Dups</span></td>
+                <td><span class="tag-pass">Passed: 0 NaN / Dups</span></td>
             </tr>
             <tr>
                 <td><strong>Data Types & Integrity</strong></td>
                 <td>Genres provided as JSON-like ID lists; release dates formatted as strings; 64 invalid rows.</td>
                 <td>Parsed dates to datetime; mapped genre IDs to names; bounded ratings within [0, 10]; purged 64 invalid rows.</td>
-                <td><span class="tag-pass">✓ Schema Valid</span></td>
+                <td><span class="tag-pass">Passed: Schema Valid</span></td>
             </tr>
             <tr>
                 <td><strong>Outlier Strategy</strong></td>
                 <td>Extreme values in popularity (up to 88.5) and vote count (up to 34,700).</td>
                 <td>Retained real blockbusters (authentic market distribution); applied log transformations (log_popularity, log_votes).</td>
-                <td><span class="tag-pass">✓ Log-Scaled</span></td>
+                <td><span class="tag-pass">Passed: Log-Scaled</span></td>
             </tr>
             <tr>
                 <td><strong>Categorical Encoding</strong></td>
                 <td>19 movie genres (multi-label) and 89 distinct original languages.</td>
                 <td>Multi-hot binary encoding for 19 genres; one-hot encoding for top-10 languages + "Other".</td>
-                <td><span class="tag-pass">✓ One-Hot Enc</span></td>
+                <td><span class="tag-pass">Passed: One-Hot Enc</span></td>
             </tr>
             <tr>
                 <td><strong>Noise Threshold & Target</strong></td>
                 <td>Small-sample ratings (< 20 votes) exhibit heavy variance and artificial 10.0 ratings.</td>
                 <td>Set 20-vote minimum cutoff. Defined high_rated target as vote_average ≥ 6.5 (39% positive class).</td>
-                <td><span class="tag-pass">✓ Balanced (39%)</span></td>
+                <td><span class="tag-pass">Passed: Balanced (39%)</span></td>
             </tr>
         </tbody>
     </table>
     """
     st.markdown(scorecard_html, unsafe_allow_html=True)
 
-    with st.expander("🔍 Inspect sample records from the clean master catalogue"):
+    with st.expander("Inspect sample records from the clean master catalogue"):
         if clean is not None:
             preview_df = clean[["title", "release_year", "original_language", "vote_average", "vote_count", "popularity", "genres"]].head(50)
             st.dataframe(preview_df, use_container_width=True, hide_index=True)
@@ -748,7 +748,7 @@ with tabs[2]:
 
 # ================= 3. Predict a movie =================
 with tabs[3]:
-    st.subheader("🎬 Pre-Release Movie Success Predictor")
+    st.subheader("Pre-Release Movie Success Predictor")
     st.caption("Estimate the likelihood of high audience ratings (≥ 6.5) for a movie concept before production using the trained Random Forest classifier.")
 
     pcol1, pcol2 = st.columns(2)
@@ -797,7 +797,7 @@ with tabs[3]:
                 row[l_col] = 1
 
             if not sim_genres:
-                st.warning("⚠️ Please select at least one genre to get a prediction.")
+                st.warning("Please select at least one genre to get a prediction.")
             else:
                 prob = rf_model.predict_proba(row)[0, 1]
                 is_high = prob >= 0.5
@@ -1094,7 +1094,7 @@ with tabs[5]:
         # ---- Topics ----
         st.markdown(
             '<div class="tm-section-header">'
-            '<div class="tm-icon" style="background:rgba(31,128,192,0.12);">📊</div>'
+            '<div class="tm-icon" style="background:rgba(31,128,192,0.12); font-weight:700; color:var(--navy); font-size:0.85rem;">01</div>'
             '<h3>Topic analysis</h3></div>', unsafe_allow_html=True)
         st.caption("Topics extracted using LDA on plot overviews. Each movie belongs to the topic with the highest probability.")
 
@@ -1144,7 +1144,7 @@ with tabs[5]:
         if need(tw, "data/text/terms_association.csv", nb):
             st.markdown(
                 '<div class="tm-section-header">'
-                '<div class="tm-icon" style="background:rgba(46,158,107,0.12);">🔤</div>'
+                '<div class="tm-icon" style="background:rgba(46,158,107,0.12); font-weight:700; color:var(--navy); font-size:0.85rem;">02</div>'
                 '<h3>Word associations</h3></div>', unsafe_allow_html=True)
             st.caption("Words that appear significantly more often in high-rated vs low-rated movie overviews (chi-square, Bonferroni corrected).")
             sg = tw[tw["significant"]]
@@ -1163,7 +1163,7 @@ with tabs[5]:
         # ---- Key Text Insights (Topic & Sentiment) ----
         st.markdown(
             '<div class="tm-section-header">'
-            '<div class="tm-icon" style="background:rgba(138,99,210,0.12);">🔬</div>'
+            '<div class="tm-icon" style="background:rgba(138,99,210,0.12); font-weight:700; color:var(--navy); font-size:0.85rem;">03</div>'
             '<h3>Topic & sentiment insights</h3></div>', unsafe_allow_html=True)
 
         with more("genre-by-topic distribution heatmap"):
@@ -1189,7 +1189,7 @@ with tabs[5]:
         # ---- Movie explorer (with weighted rating fix) ----
         st.markdown(
             '<div class="tm-section-header">'
-            '<div class="tm-icon" style="background:rgba(242,142,43,0.12);">🎬</div>'
+            '<div class="tm-icon" style="background:rgba(242,142,43,0.12); font-weight:700; color:var(--navy); font-size:0.85rem;">04</div>'
             '<h3>Movie explorer</h3></div>', unsafe_allow_html=True)
 
         # Rating adjustment for credibility based on vote count
@@ -1201,7 +1201,7 @@ with tabs[5]:
             + (m_votes / (ft_ex["vote_count"] + m_votes)) * C_mean
         )
 
-        q = st.text_input("🔍 Search title or overview", placeholder="e.g. Spirited Away, war, family...")
+        q = st.text_input("Search title or overview", placeholder="e.g. Spirited Away, war, family...")
         sc1, sc2 = st.columns([2, 2])
         with sc1:
             topic_opts = ["All topics"] + sorted([str(t) for t in ft_ex["topic_name"].dropna().unique()])
@@ -1222,103 +1222,108 @@ with tabs[5]:
 
         st.caption(f"{len(ex):,} movies · showing top 300 · sorted by {sort_by.lower()}")
         table(ex.head(300).round(3))
-        st.download_button("📥 Download the filtered movies (CSV)", ex.to_csv(index=False).encode("utf-8"), "filtered_movies.csv", "text/csv")
+        st.download_button("Download the filtered movies (CSV)", ex.to_csv(index=False).encode("utf-8"), "filtered_movies.csv", "text/csv")
 
 
-# ================= 6. Insights & Roadmap =================
+# ================= 6. Insights =================
 with tabs[6]:
-    st.subheader("The big picture, in plain English")
-    st.caption("These are practical takeaways from the movie data. They describe patterns, not guarantees.")
-    for i, (h, t) in enumerate(RECS):
-        icon, category, accent, icon_bg = INSIGHT_META[i]
+    st.subheader("Core Strategic Insights")
+    st.caption("Key takeaways mapping directly across our four analytical stages.")
+
+    col1, col2 = st.columns(2)
+    with col1:
         st.markdown(
-            f"""
-            <div class="insight-card" style="--accent:{accent};--icon-bg:{icon_bg};">
-                <div class="insight-topline">
-                    <div class="insight-icon">{icon}</div>
-                    <div>
-                        <div class="insight-category">{html.escape(category)}</div>
-                        <p class="insight-title">{html.escape(h)}</p>
-                    </div>
-                </div>
-                <p class="insight-copy"><span class="insight-label">What this means: </span>{html.escape(t)}</p>
+            '''
+            <div class="web-card" style="margin-bottom:0.85rem;">
+                <h4>01 · Pre-Release Concept Screening (Predictive ML)</h4>
+                <p><strong>Finding:</strong> Content features (genre mix, language, month) classify high-rated titles with <strong>0.785 AUC</strong> before production begins.<br>
+                <strong>Action:</strong> Evaluate scripts against genre baselines (Documentary/Animation lead; Horror trails) rather than a single catalogue-wide average.</p>
             </div>
-            """,
+            ''',
             unsafe_allow_html=True,
         )
-    if clean is not None and f is not None and not f.empty:
-        g = f.explode("genres").groupby("genres").agg(movies=("id", "size"), rating=("vote_average", "mean")).query("movies >= 30")
-        if len(g) > 1:
-            st.subheader("Your selected catalogue at a glance")
-            st.caption("These numbers update when you change the filters in the sidebar.")
-            s1, s2, s3 = st.columns(3)
-            with s1:
-                st.markdown(
-                    f'<div class="insight-stat"><strong>{g["rating"].idxmax()}</strong><span>Highest-rated genre · {g["rating"].max():.2f} average</span></div>',
-                    unsafe_allow_html=True,
-                )
-            with s2:
-                st.markdown(
-                    f'<div class="insight-stat"><strong>{g["rating"].idxmin()}</strong><span>Lowest-rated genre · {g["rating"].min():.2f} average</span></div>',
-                    unsafe_allow_html=True,
-                )
-            with s3:
-                st.markdown(
-                    f'<div class="insight-stat"><strong>{f["high_rated"].mean():.0%}</strong><span>Of {len(f):,} selected movies rated {HIGH}+</span></div>',
-                    unsafe_allow_html=True,
-                )
-    st.caption("Findings are associations in a sample of TMDB movies, not proof of cause.")
+        st.markdown(
+            '''
+            <div class="web-card">
+                <h4>03 · Market Saturation & Steady Ratings (Time Series)</h4>
+                <p><strong>Finding:</strong> Historical ratings stabilized near <strong>6.36</strong> since 2020. Horror (+3.8 pp) and Thriller (+3.3 pp) shares expanded, while Drama contracted (-7.2 pp).<br>
+                <strong>Action:</strong> Plan for stable catalogue quality rather than continued growth. Given crowded thriller markets, focus capital on distinct creative execution.</p>
+            </div>
+            ''',
+            unsafe_allow_html=True,
+        )
+    with col2:
+        st.markdown(
+            '''
+            <div class="web-card" style="margin-bottom:0.85rem;">
+                <h4>02 · Reach vs. Quality Reception (EDA)</h4>
+                <p><strong>Finding:</strong> Popularity and ratings share a weak correlation (<strong>r = 0.16</strong>). High commercial buzz does not guarantee audience acclaim.<br>
+                <strong>Action:</strong> Treat reach and quality as separate investment KPIs. Adding early post-release vote engagement raises predictive AUC to <strong>0.836</strong>.</p>
+            </div>
+            ''',
+            unsafe_allow_html=True,
+        )
+        st.markdown(
+            '''
+            <div class="web-card">
+                <h4>04 · Narrative Vocabulary & Tropes (Text Mining)</h4>
+                <p><strong>Finding:</strong> Factual, historical plot terms (<em>documentary, war, history</em>) associate with higher ratings, while formulaic tropes (<em>killer, serial, boyfriend</em>) associate with lower ratings.<br>
+                <strong>Action:</strong> Use plot vocabulary screening to flag formulaic fatigue during early pitch deck reviews.</p>
+            </div>
+            ''',
+            unsafe_allow_html=True,
+        )
 
-    st.markdown('<hr class="tm-divider" style="margin:2.5rem 0 1.5rem;">', unsafe_allow_html=True)
-    st.subheader("🏁 Project Conclusions, Limitations & Future Scope")
-    st.caption("Synthesis of analytical results, boundary conditions, and technical next steps.")
+    st.markdown('<hr class="tm-divider" style="margin:1.6rem 0 1.2rem;">', unsafe_allow_html=True)
 
+    # Project Summary & Limitations
+    st.subheader("Project Summary & Future Scope")
     ccol1, ccol2, ccol3 = st.columns(3)
     with ccol1:
         st.markdown(
-            """
+            '''
             <div class="web-card">
-                <h4>🏆 Core Conclusions</h4>
-                <p><strong>1. Genre Dominance:</strong> Genre is the single strongest pre-release signal (Documentary and Animation lead; Horror trails).<br>
-                <strong>2. Plateaued Ratings:</strong> Historical ratings rose from 6.06 to 6.3 in 2020 and have stabilized; forecasting indicates stability rather than further growth.<br>
-                <strong>3. Plot Vocabulary:</strong> Factual plot terminology links to higher ratings, whereas formulaic tropes correlate with lower reception.<br>
-                <strong>4. Machine Learning:</strong> Content features alone classify high-rated titles with AUC 0.785, proving strong screening utility.</p>
+                <h4>Core Conclusions</h4>
+                <p>• Genre is the single strongest pre-release signal.<br>
+                • Macro ratings have plateaued at ~6.3 since 2020.<br>
+                • Random Forest Set A (AUC 0.785) provides effective screening.<br>
+                • Plot vocabulary acts as a reliable qualitative check.</p>
             </div>
-            """,
+            ''',
             unsafe_allow_html=True
         )
     with ccol2:
         st.markdown(
-            """
+            '''
             <div class="web-card">
-                <h4>⚠️ Methodological Limitations</h4>
-                <p><strong>1. API Sample Scope:</strong> ~600 movies per release year; represents a sample rather than complete global film census.<br>
-                <strong>2. Vote Maturation Lag:</strong> Recent 12 months excluded from time-series modeling due to immature vote counts.<br>
-                <strong>3. TextBlob Sentiment:</strong> Polarity measures plot synopsis tone, not actual audience emotional sentiment.<br>
-                <strong>4. Recall Ceiling:</strong> Set A content model recall is 0.527, meaning 47% of high-rated films are missed if judged purely on metadata.</p>
+                <h4>Methodological Limitations</h4>
+                <p>• TMDB sample (~600 titles/year); not a complete census.<br>
+                • Recent 12 months excluded due to vote maturation lag.<br>
+                • TextBlob measures plot tone, not audience sentiment.<br>
+                • Content-only model recall is 0.527.</p>
             </div>
-            """,
+            ''',
             unsafe_allow_html=True
         )
     with ccol3:
         st.markdown(
-            """
+            '''
             <div class="web-card">
-                <h4>🔮 Future Engineering Scope</h4>
-                <p><strong>1. Financial Integration:</strong> Ingest production budget, marketing spend, and box office revenue data.<br>
-                <strong>2. Cast & Crew Influence:</strong> Incorporate director and lead cast historical track-record weights.<br>
-                <strong>3. Advanced NLP:</strong> Replace TextBlob with transformer embeddings (Sentence-BERT / RoBERTa) and lemmatized keyphrases.<br>
-                <strong>4. Production Pipeline:</strong> Automate periodic TMDB API ingestion with cloud-hosted Streamlit deployment.</p>
+                <h4>Future Scope</h4>
+                <p>• Ingest budget, marketing spend, and box office revenue.<br>
+                • Incorporate director and lead cast star-power weights.<br>
+                • Upgrade from TextBlob to transformer sentence embeddings.<br>
+                • Deploy automated periodic API ingestion via cloud CI/CD.</p>
             </div>
-            """,
+            ''',
             unsafe_allow_html=True
         )
 
-    st.markdown('<div style="margin-top:2.2rem;"></div>', unsafe_allow_html=True)
-    with st.expander("ℹ️ Project details & contributors"):
+    st.markdown('<div style="margin-top:1.8rem;"></div>', unsafe_allow_html=True)
+    with st.expander("Project details & contributors"):
         st.caption("Course: 23CSE452 Business Analytics · Faculty Guide: Prof. Rohini S")
         st.markdown(
-            """
+            '''
             <div style="display:flex; flex-wrap:wrap; gap:0.65rem; margin-top:0.4rem;">
                 <div style="background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:0.5rem 0.85rem;">
                     <strong style="color:var(--ink); font-size:0.88rem;">Soundarya Satalgoan</strong>
@@ -1341,7 +1346,6 @@ with tabs[6]:
                     <span style="color:var(--muted); font-size:0.78rem; margin-left:0.35rem;">CB.SC.U4CSE23614</span>
                 </div>
             </div>
-            """,
+            ''',
             unsafe_allow_html=True
         )
-
