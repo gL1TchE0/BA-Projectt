@@ -715,13 +715,19 @@ with tabs[2]:
                                      pop=("popularity", "mean")).query("movies >= 30").reset_index()
         metric = st.radio("Compare genres by", ["Average rating", "Average popularity"], horizontal=True)
         mcol, mcolor = ("rating", ORANGE) if metric == "Average rating" else ("pop", GREEN)
-        fig = px.bar(gs.sort_values(mcol), x=mcol, y="genres", orientation="h", color_discrete_sequence=[mcolor],
-                     title=f"{metric} by genre", labels={mcol: metric, "genres": ""}, hover_data={"movies": True})
-        show(fig)
-        if len(gs) > 1:
-            hi_, lo_ = gs.loc[gs["rating"].idxmax()], gs.loc[gs["rating"].idxmin()]
-            st.caption(f"Highest rated genre: {hi_['genres']} ({hi_['rating']:.2f}). Lowest: {lo_['genres']} ({lo_['rating']:.2f}). "
-                       "Genres with fewer than 30 movies are hidden.")
+        
+        if gs.empty:
+            st.info("No genres have 30 or more movies under the current filter selection. Broaden your year range or genre filters to view rankings.")
+        else:
+            fig = px.bar(gs.sort_values(mcol), x=mcol, y="genres", orientation="h", color_discrete_sequence=[mcolor],
+                         title=f"{metric} by genre", labels={mcol: metric, "genres": ""}, hover_data={"movies": True})
+            show(fig)
+            if len(gs) > 1:
+                hi_, lo_ = gs.loc[gs["rating"].idxmax()], gs.loc[gs["rating"].idxmin()]
+                st.caption(f"Highest rated genre: {hi_['genres']} ({hi_['rating']:.2f}). Lowest: {lo_['genres']} ({lo_['rating']:.2f}). "
+                           "Genres with fewer than 30 movies are hidden.")
+            elif len(gs) == 1:
+                st.caption(f"Only one genre ({gs['genres'].iloc[0]}) meets the 30-movie threshold in this selection.")
         with more("rating by language and by decade"):
             ls = (f.groupby("original_language").agg(movies=("id", "size"), rating=("vote_average", "mean"))
                     .sort_values("movies", ascending=False).head(10).reset_index().sort_values("rating"))
@@ -742,8 +748,22 @@ with tabs[2]:
                              labels={"popularity": "Popularity (log)", "vote_average": "Rating"})
             show(fig)
             r = f[["vote_average", "popularity", "vote_count"]].corr(method="spearman")
-            st.caption(f"Spearman correlation with rating: popularity {r.loc['vote_average', 'popularity']:.2f}, "
-                       f"vote count {r.loc['vote_average', 'vote_count']:.2f}. Both are weak.")
+            r_pop = r.loc["vote_average", "popularity"]
+            r_cnt = r.loc["vote_average", "vote_count"]
+            
+            def _eval_corr(v):
+                if pd.isna(v): return "negligible"
+                av = abs(v)
+                if av < 0.30: return "weak"
+                if av < 0.50: return "moderate"
+                return "strong"
+
+            s_pop, s_cnt = _eval_corr(r_pop), _eval_corr(r_cnt)
+            if s_pop == s_cnt:
+                desc = f"Both show a {s_pop} relationship."
+            else:
+                desc = f"Popularity is {s_pop}, while vote count is {s_cnt}."
+            st.caption(f"Spearman correlation with rating: popularity {r_pop:.2f}, vote count {r_cnt:.2f}. {desc}")
 
 
 # ================= 3. Predict a movie =================
